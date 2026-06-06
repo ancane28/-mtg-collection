@@ -20,7 +20,8 @@ export default async function CollectionPage() {
     .select('*')
     .order('name_en') as { data: any[] | null, error: any }
 
-  const cardIds = (items ?? []).map((i) => i.card_id)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cardIds = (items ?? []).map((i: any) => i.card_id)
 
   const { data: rawUsages } = cardIds.length > 0
     ? await db

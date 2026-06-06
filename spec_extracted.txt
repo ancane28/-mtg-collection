@@ -1,0 +1,516 @@
+MTG COLLECTION MANAGER
+Documento di Specifica Completo
+MVP — Versione 1.0
+Maggio 2026
+Formato target
+Stack tecnologico
+Commander (16–30 mazzi)
+Next.js + Supabase + Vercel
+Dispositivo principale
+Import decklist
+Desktop / laptop
+Testo standard MTG / copia-incolla
+1. Filosofia del Prodotto
+MTG Collection Manager è un'applicazione personale per tracciare la collezione fisica di carte Magic: The Gathering e la loro distribuzione reale nei mazzi. Non è un deckbuilder: il suo scopo primario è sapere, in ogni momento, quante copie si possiedono di una carta, quante sono in uso e dove.
+1.1 Principio fondamentale
+REGOLA CORE
+Una carta REAL assegnata a un mazzo consuma una copia fisica della collezione.
+Una carta PROXY non consuma copie della collezione.
+Non esistono altri stati: solo REAL e PROXY.
+1.2 I due stati
+Stato
+Definizione
+Effetto sulla collezione
+REAL
+Copia fisica realmente assegnata a un mazzo
+PROXY
+Carta usata nel mazzo senza consumare copie fisiche
+1.3 Formula di disponibilità
+FORMULA
+copie_disponibili = copie_possedute − Σ(quantità REAL nei mazzi)
+Il calcolo avviene tramite oracle_id, quindi ristampe diverse della stessa carta sono equivalenti ai fini della disponibilità.
+2. Architettura e Stack Tecnologico
+2.1 Stack
+Layer
+Tecnologia
+Ruolo
+Frontend
+Next.js (App Router)
+UI, routing, SSR/SSG
+Backend / BaaS
+Supabase
+Database PostgreSQL, Auth, RLS, Realtime
+Database carte
+Scryfall API
+Dati globali MTG (nomi, immagini, oracle text)
+Hosting
+Vercel
+Deploy frontend + edge functions
+Stile
+Tailwind CSS
+Design system utility-first
+State
+Zustand o React Query
+Gestione stato client e cache
+2.2 Schema database
+Il database è composto da 4 entità principali:
+cards — database globale MTG
+Campo
+Tipo
+Note
+id
+UUID PK
+oracle_id
+TEXT UNIQUE NOT NULL
+Identifica la carta indipendentemente dalla stampa
+name_en
+TEXT NOT NULL
+Nome inglese ufficiale
+name_it
+TEXT
+Nome italiano (da Scryfall se disponibile)
+mana_cost
+TEXT
+Es: {2}{U}{U}
+cmc
+NUMERIC
+Costo di mana convertito
+oracle_text
+TEXT
+Testo regole ufficiale
+type_line
+TEXT
+Es: Legendary Creature — Human Wizard
+power
+TEXT
+Forza (null se non creatura)
+toughness
+TEXT
+Costituzione (null se non creatura)
+colors
+TEXT[]
+Array: W, U, B, R, G
+rarity
+TEXT
+common / uncommon / rare / mythic
+image_url
+TEXT
+URL immagine Scryfall (art crop o normal)
+updated_at
+TIMESTAMPTZ
+Aggiornamento da Scryfall
+collection_items — copie fisiche possedute
+Campo
+Tipo
+Note
+id
+UUID PK
+card_id
+UUID FK → cards.id
+quantity_owned
+INTEGER NOT NULL DEFAULT 0
+Copie fisiche totali possedute
+created_at
+TIMESTAMPTZ
+updated_at
+TIMESTAMPTZ
+decks — mazzi
+Campo
+Tipo
+Note
+id
+UUID PK
+name
+TEXT NOT NULL
+format
+TEXT
+commander / standard / modern / legacy / vintage / pauper / custom
+commander_card_id
+UUID FK → cards.id
+Nullable — solo per Commander
+notes
+TEXT
+Note libere
+created_at
+TIMESTAMPTZ
+updated_at
+TIMESTAMPTZ
+deck_cards — relazione carte ↔ mazzi
+Campo
+Tipo
+Note
+id
+UUID PK
+deck_id
+UUID FK → decks.id ON DELETE CASCADE
+card_id
+UUID FK → cards.id
+quantity
+INTEGER NOT NULL DEFAULT 1
+usage_type
+TEXT NOT NULL
+Vincolo: CHECK (usage_type IN ('real','proxy'))
+created_at
+TIMESTAMPTZ
+2.3 Query disponibilità (SQL)
+La query cardine del sistema — calcola la disponibilità per ogni carta nella collezione:
+SQL
+SELECT
+  ci.card_id,
+  ci.quantity_owned,
+  COALESCE(SUM(dc.quantity) FILTER (WHERE dc.usage_type = 'real'), 0) AS qty_used,
+  ci.quantity_owned
+    - COALESCE(SUM(dc.quantity) FILTER (WHERE dc.usage_type = 'real'), 0) AS qty_available
+FROM collection_items ci
+LEFT JOIN cards c ON c.id = ci.card_id
+LEFT JOIN cards c2 ON c2.oracle_id = c.oracle_id
+LEFT JOIN deck_cards dc ON dc.card_id = c2.id AND dc.usage_type = 'real'
+GROUP BY ci.id, ci.card_id, ci.quantity_owned;
+3. Struttura dell'Applicazione
+L'app è divisa in due sezioni principali accessibili dalla navigazione principale:
+Sezione
+Scopo
+Collezione
+Visualizzare e gestire le copie fisiche possedute
+Mazzi
+Creare, modificare e analizzare i mazzi
+3.1 Sezione Collezione
+Vista principale — lista carte
+Ogni riga della collezione mostra:
+Immagine thumbnail della carta
+Nome EN / IT
+Costo di mana, tipo, colori, rarità
+Copie possedute / usate nei mazzi (REAL) / disponibili
+Indicatore visivo: barra di utilizzo (verde → disponibile, rosso → overcommit)
+Elenco mazzi che usano la carta (con badge REAL / PROXY)
+Filtri e ordinamenti
+Per nome (ricerca testuale)
+Per colore, tipo, formato, rarità
+Solo carte in overcommit
+Solo carte mai usate in alcun mazzo
+Ordinamento: nome, disponibilità, utilizzo
+Vista dettaglio carta
+Pannello laterale o modale con:
+Immagine grande della carta
+Tutti i dati (oracle text, tipo, P/T…)
+Storico utilizzo: in quali mazzi appare, quantità, stato REAL/PROXY
+Azioni: modifica copie possedute, forza conversione REAL→PROXY
+3.2 Sezione Mazzi
+Vista lista mazzi
+Ogni card mazzo mostra:
+Nome, formato, comandante (se presente)
+Numero totale carte
+Numero REAL / numero PROXY
+Indicatore salute mazzo: % di REAL vs PROXY
+Vista dettaglio mazzo
+Lista completa delle carte con:
+Quantità, nome, badge REAL/PROXY
+Avvisi inline per carte in overcommit
+Sezioni: Comandante, Terre, Creature, Stregonerie, Istantanei, Artefatti, Incantesimi, Planeswalker
+Azioni rapide: converti REAL→PROXY, rimuovi carta
+Azioni principali
+Crea nuovo mazzo (nome, formato, comandante, note)
+Importa decklist (testo)
+Elimina mazzo
+Duplica mazzo
+Esporta decklist in formato testo
+4. Flussi UX Completi
+4.1 Flusso: aggiunta carte alla collezione
+Step
+Azione utente
+Sistema
+1
+Clicca «Aggiungi carte»
+Apre pannello import
+2
+Incolla testo decklist o lista carte
+Parsa righe nel formato «N NomeCarta»
+3
+Conferma
+Ricerca ogni carta su Scryfall via oracle_id
+4
+—
+Aggiorna collection_items (upsert qty_owned)
+5
+Visualizza risultato
+Mostra riepilogo: N carte aggiunte / N non trovate
+4.2 Flusso: importazione decklist
+Step
+Azione utente
+Sistema
+1
+Seleziona mazzo / crea nuovo
+—
+2
+Clicca «Importa decklist»
+Apre textarea
+3
+Incolla testo (formato standard MTG)
+Parsa righe: qty + nome
+4
+Clicca «Processa»
+Per ogni carta: lookup Scryfall → calcola disponibilità
+5
+—
+Assegna REAL se copie disponibili > 0 (fino ad esaurimento)
+6
+—
+Assegna PROXY per le eccedenze
+7
+Visualizza anteprima
+Mostra lista con badge REAL/PROXY e avvisi
+8
+Conferma o modifica
+Salva deck_cards nel database
+4.3 Flusso: rimozione carta da mazzo
+Stato carta
+Effetto sul database
+Effetto sulla collezione
+REAL
+Elimina riga da deck_cards
+quantity_owned non cambia → disponibilità aumenta
+PROXY
+Elimina riga da deck_cards
+Nessun effetto sulla collezione
+4.4 Flusso: eliminazione mazzo
+Tutte le righe deck_cards vengono eliminate (CASCADE)
+Le carte REAL tornano disponibili (il calcolo è automatico via query)
+Le carte PROXY non hanno mai avuto effetto sulla collezione
+Mostrare dialog di conferma con riepilogo: «N carte REAL torneranno disponibili»
+4.5 Flusso: riduzione copie possedute
+Scenario: l'utente riduce quantity_owned sotto la soglia delle copie REAL assegnate.
+Step
+Sistema
+1
+Rileva overcommit: qty_available < 0
+2
+Mostra warning: «Hai N copie REAL in eccesso»
+3
+Propone lista delle assegnazioni REAL con checkbox per conversione a PROXY
+4
+Utente seleziona quali convertire → conferma
+5
+Aggiorna usage_type = 'proxy' sulle righe selezionate
+5. Edge Case e Gestione Errori
+5.1 Tabella edge case
+Scenario
+Comportamento atteso
+UX
+Import: più copie richieste di quelle possedute
+Usa tutte le REAL disponibili, converti eccedenze in PROXY
+Badge PROXY visibile, nessun blocco
+Carta non in collezione aggiunta a mazzo
+Assegnata automaticamente come PROXY
+Warning: «Carta non in collezione → assegnata PROXY»
+Riduzione copie possedute sotto soglia REAL
+Calcola overcommit, propone conversione a PROXY
+Warning con lista interattiva per conversione
+Eliminazione mazzo con carte REAL
+CASCADE delete su deck_cards, disponibilità ricalcolata
+Dialog conferma con riepilogo carte liberate
+Carta non trovata su Scryfall al momento dell'import
+Riga skippata, segnalata come «non trovata»
+Riepilogo post-import con lista errori
+Stessa carta presente in più stampe (ristampe)
+Calcolo disponibilità via oracle_id (tutte le stampe equivalenti)
+Trasparente per l'utente
+Duplicazione mazzo
+Tutte le carte vengono duplicate come PROXY
+Warning: «Mazzo duplicato — tutte le carte impostate su PROXY. Verifica manualmente le REAL.»
+5.2 Regole di non-blocco
+L'app non deve mai bloccare l'utente. La filosofia è:
+Avvisare sempre in modo chiaro
+Suggerire l'azione correttiva più logica
+Permettere di procedere anche in stato di warning
+Il sistema PROXY è il safety net: qualsiasi carta può essere aggiunta a un mazzo
+6. Design System e Linee Guida UX
+6.1 Principi UX
+Chiarezza: la disponibilità di una carta deve essere visibile a colpo d'occhio
+Velocità: operazioni frequenti (import, conversione REAL/PROXY) in max 3 click
+Non-blocco: warning non-modali, sempre possibile procedere
+Desktop-first: layout a 2–3 colonne, navigazione sidebar
+6.2 Palette e badge
+Elemento
+Colore
+Uso
+Badge REAL
+#2E7D32 (verde)
+Carta fisica assegnata
+Badge PROXY
+#C62828 (rosso)
+Carta proxy
+Warning overcommit
+#E65100 (arancione)
+Copie REAL > copie possedute
+Disponibile
+#1565C0 (blu)
+Carte con copie libere
+Accent principale
+#533483 (viola)
+Azioni primarie, header
+6.3 Schermate principali (wireframe testuale)
+Schermata: Collezione
+LAYOUT
+[ Sidebar nav ] | [ Filtri top bar ]
+[ Lista carte — righe con thumbnail + dati + barra utilizzo ]
+Clic su carta → Pannello laterale dettaglio (immagine + utilizzo nei mazzi)
+Schermata: Lista mazzi
+LAYOUT
+[ Grid di card mazzi ]
+Ogni card: nome, formato, comandante, REAL count, PROXY count, % salute
+[ Pulsante «+ Nuovo mazzo» ] [ Pulsante «Importa decklist» ]
+Schermata: Dettaglio mazzo
+LAYOUT
+[ Header: nome mazzo, formato, comandante, stats REAL/PROXY ]
+[ Pulsante «Importa» ] [ Pulsante «Esporta» ] [ Pulsante «Elimina» ]
+[ Lista carte suddivisa per tipo — ogni riga: qty + nome + badge REAL/PROXY + avviso ]
+Schermata: Import decklist
+LAYOUT
+[ Textarea: incolla testo decklist ]
+Formato supportato: «N NomeCarta» (es: 4 Counterspell, 1 Sol Ring)
+[ Pulsante «Processa» ] → [ Anteprima con badge REAL/PROXY ]
+[ Conferma ] → salva nel database
+7. Scope MVP
+7.1 Feature incluse nell'MVP
+Feature
+Priorità
+Note
+Gestione collezione (CRUD copie)
+P0 — Critica
+Gestione mazzi (CRUD)
+P0 — Critica
+Import decklist testo
+P0 — Critica
+Formato standard MTG
+Assegnazione automatica REAL/PROXY
+P0 — Critica
+Algoritmo disponibilità
+Tracciamento disponibilità carte
+P0 — Critica
+Query oracle_id
+Tracciamento utilizzo nei mazzi
+P0 — Critica
+Pannello dettaglio carta
+Warning overcommit
+P1 — Alta
+Con conversione REAL→PROXY
+Filtri e ricerca collezione
+P1 — Alta
+Export decklist testo
+P1 — Alta
+Integrazione Scryfall (immagini + dati)
+P1 — Alta
+Duplicazione mazzo
+P2 — Media
+Tutte PROXY di default
+Autenticazione utente
+P2 — Media
+Supabase Auth (opzionale per MVP single-user)
+Mobile responsive
+P3 — Bassa
+Desktop-first, mobile miglioramento futuro
+7.2 Feature escluse dall'MVP
+Scansione OCR / fotocamera
+Importazione da file .csv/.xml
+Prezzi di mercato delle carte
+Condivisione mazzi pubblici
+Gestione wishlist
+Multi-utente / team
+App mobile nativa
+7.3 Roadmap MVP — fasi di sviluppo
+Fase
+Attività
+Output
+Fase 1 (attuale)
+Definizione spec, UX, edge case, schema DB
+Questo documento
+Fase 2
+Setup Next.js + Supabase, schema DB, Scryfall integration
+Infrastruttura base
+Fase 3
+Sezione Collezione: CRUD + visualizzazione disponibilità
+Collezione funzionante
+Fase 4
+Sezione Mazzi: CRUD + assegnazione REAL/PROXY
+Mazzi funzionanti
+Fase 5
+Import decklist + algoritmo auto-assegnazione
+Import completo
+Fase 6
+Warning, edge case, conversione REAL→PROXY interattiva
+Edge case coperti
+Fase 7
+UI polish, filtri, performance, deploy Vercel
+MVP rilasciato
+8. Algoritmo di Import Decklist
+8.1 Formati supportati
+Il parser deve gestire il formato testuale standard usato da Moxfield, Archidekt, EDHREC, etc.:
+FORMATO INPUT
+1 Sol Ring
+4 Counterspell
+1 Rhystic Study
+// Commenti con doppio slash vengono ignorati
+SB: 1 Brainstorm  ← righe con prefisso SB: (sideboard) opzionali
+8.2 Pseudocodice algoritmo
+ALGORITMO
+Per ogni riga del testo:
+  1. Skip righe vuote e commenti (// o SB:)
+  2. Parsa «qty NomeCarta»
+  3. Lookup oracle_id su Scryfall (nome → oracle_id)
+  4. Se carta non trovata → aggiungi a lista errori, continua
+  5. Calcola available = qty_owned − Σ(REAL esistenti per oracle_id)
+  6. real_qty = min(qty, available)
+  7. proxy_qty = qty − real_qty
+  8. Inserisci in deck_cards:
+     - Se real_qty > 0: una riga con usage_type='real', quantity=real_qty
+     - Se proxy_qty > 0: una riga con usage_type='proxy', quantity=proxy_qty
+8.3 Output anteprima import
+Prima della conferma, l'utente vede una tabella con:
+Nome carta
+Quantità totale richiesta
+Copie REAL assegnate (verde)
+Copie PROXY assegnate (rosso)
+Eventuali avvisi (carta non in collezione, carta non trovata)
+9. Decisioni Aperte
+Le seguenti decisioni sono state rinviate alla fase di sviluppo:
+Questione
+Opzione A
+Opzione B
+Raccomandazione
+Auth utente
+Single-user senza login (localStorage)
+Supabase Auth per multi-device
+Opzione B — Supabase Auth, anche per un solo utente garantisce sync tra device
+Gestione ristampe nella collezione
+Una sola riga per oracle_id (semplice)
+Righe separate per ogni stampa (preciso)
+Opzione A per MVP — più semplice, oracle_id già gestisce l'equivalenza
+Cache Scryfall
+Fetch on-demand ad ogni ricerca
+Bulk download del dataset Scryfall offline
+Opzione A per MVP, Opzione B per performance a lungo termine
+Sidebar vs commander come campo obbligatorio
+Commander obbligatorio per format Commander
+Sempre opzionale
+Opzione B — evita friction, l'utente lo imposta quando vuole
+10. Glossario
+Termine
+Definizione
+REAL
+Copia fisica della carta assegnata a un mazzo. Consuma una copia dalla collezione.
+PROXY
+Carta usata in un mazzo senza consumare copie fisiche (stampa, sostituto, token).
+oracle_id
+Identificatore univoco Scryfall per una carta, indipendente dalla stampa o edizione.
+collection_item
+Record che rappresenta quante copie fisiche si possiedono di una carta.
+deck_card
+Record che rappresenta la presenza di una carta in un mazzo con qty e usage_type.
+overcommit
+Stato in cui le copie REAL assegnate superano le copie fisicamente possedute.
+disponibilità
+qty_owned − Σ(REAL assegnate a tutti i mazzi). Può essere negativa (overcommit).
+import
+Processo di caricamento di una decklist testuale nel sistema.
+salute mazzo
+Percentuale di carte REAL sul totale. Un mazzo con 100% REAL è completamente fisico.

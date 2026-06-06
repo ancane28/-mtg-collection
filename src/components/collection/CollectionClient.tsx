@@ -8,7 +8,7 @@ import { ImportCollectionModal } from './ImportCollectionModal'
 import { CollectionAvailability } from '@/types/database'
 import { availabilityVariant, formatManaCost, rarityColor } from '@/lib/utils'
 import { updateCollectionQty, removeFromCollection, refreshCollectionPrices } from '@/app/(app)/collection/actions'
-import { DeckUsage } from '@/app/collection/page'
+import { DeckUsage } from '@/app/(app)/collection/page'
 
 interface CollectionClientProps {
   items: CollectionAvailability[]

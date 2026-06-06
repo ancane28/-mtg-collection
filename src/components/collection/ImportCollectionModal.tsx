@@ -24,7 +24,7 @@ export function ImportCollectionModal({ open, onClose }: ImportCollectionModalPr
     if ('error' in res && res.error) {
       setError(res.error)
     } else if ('imported' in res) {
-      setResult({ imported: res.imported, errors: res.errors })
+      setResult({ imported: res.imported ?? 0, errors: res.errors ?? [] })
     }
     setLoading(false)
   }

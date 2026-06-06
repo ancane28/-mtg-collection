@@ -16,24 +16,27 @@ type DeckRaw = {
 
 export default async function DashboardPage() {
   const supabase = await createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any
 
-  const [{ data: collection }, { data: decksRaw }] = await Promise.all([
-    supabase.from('collection_availability').select('quantity_owned, qty_available, price_eur, rarity'),
-    supabase
-      .from('decks')
-      .select('*, commander:commander_card_id(name_en, image_url)')
-      .order('created_at', { ascending: false }),
-  ])
+  const { data: collection } = await db
+    .from('collection_availability')
+    .select('quantity_owned, qty_available, price_eur, rarity') as { data: any[] | null }
+
+  const { data: decksRaw } = await supabase
+    .from('decks')
+    .select('*, commander:commander_card_id(name_en, image_url)')
+    .order('created_at', { ascending: false })
 
   const decks = (decksRaw ?? []) as unknown as DeckRaw[]
   const deckIds = decks.map((d) => d.id)
 
-  const { data: deckStatsRaw } = deckIds.length
-    ? await supabase
+  const { data: deckStatsRaw } = (deckIds.length
+    ? await db
         .from('deck_cards')
         .select('deck_id, usage_type, quantity')
         .in('deck_id', deckIds)
-    : { data: null }
+    : { data: null }) as { data: Array<{ deck_id: string; usage_type: string; quantity: number }> | null }
 
   const items = collection ?? []
 

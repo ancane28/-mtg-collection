@@ -18,7 +18,7 @@ export default async function CollectionPage() {
   const { data: items, error } = await db
     .from('collection_availability')
     .select('*')
-    .order('name_en')
+    .order('name_en') as { data: any[] | null, error: any }
 
   const cardIds = (items ?? []).map((i) => i.card_id)
 

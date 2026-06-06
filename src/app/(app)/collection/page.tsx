@@ -15,7 +15,7 @@ export default async function CollectionPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
 
-  const { data: items, error } = await supabase
+  const { data: items, error } = await db
     .from('collection_availability')
     .select('*')
     .order('name_en')

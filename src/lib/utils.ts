@@ -36,8 +36,10 @@ export function parseDecklistLine(line: string): { qty: number; name: string } |
   const match = trimmed.match(/^(\d+)\s+(.+)$/)
   if (!match) return null
   let name = match[2].trim()
-  // Normalizza apostrofi curvi → dritti: "Kazuul’s" → "Kazuul's"
-  name = name.replace(/[‘’‚‛]/g, "'")
+  // Rimuove virgolette esterne: "Commander’s Sphere (CMM) 377" → Commander’s Sphere (CMM) 377
+  if (name.charCodeAt(0) === 34 && name.charCodeAt(name.length - 1) === 34) name = name.slice(1, -1).trim()
+  // Normalizza apostrofi curvi → dritti: "Kazuul’s" → "Kazuul’s"
+  name = name.replace(/[‘’‚‛]/g, "’")
   // Normalizza separatore bifronte: "Name//Back" o "Name //Back" → "Name // Back"
   name = name.replace(/\s*\/\/\s*/g, ' // ').trim()
   // Rimuove set code, collector number E label come "(Commander)": "Wick, the Whorled Mind (Commander)" → "Wick, the Whorled Mind"

@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { scryfallToDbInsert, ScryfallCard } from '@/lib/scryfall/api'
+import { scryfallToDbInsert, ScryfallCard, SCRYFALL_HEADERS } from '@/lib/scryfall/api'
 import { revalidatePath } from 'next/cache'
 
 export async function getCardStats() {
@@ -15,7 +15,7 @@ export async function getCardStats() {
 
 export async function syncCardsDatabase() {
   // 1. Fetch metadata
-  const metaRes = await fetch('https://api.scryfall.com/bulk-data', { cache: 'no-store' })
+  const metaRes = await fetch('https://api.scryfall.com/bulk-data', { headers: SCRYFALL_HEADERS, cache: 'no-store' })
   if (!metaRes.ok) return { error: 'Impossibile contattare Scryfall' }
 
   const meta = await metaRes.json()
@@ -24,7 +24,7 @@ export async function syncCardsDatabase() {
   if (!oracleEntry) return { error: 'Bulk data oracle_cards non trovato' }
 
   // 2. Scarica il JSON (~26 MB)
-  const dataRes = await fetch(oracleEntry.download_uri, { cache: 'no-store' })
+  const dataRes = await fetch(oracleEntry.download_uri, { headers: SCRYFALL_HEADERS, cache: 'no-store' })
   if (!dataRes.ok) return { error: 'Download dati Scryfall fallito' }
 
   const cards: ScryfallCard[] = await dataRes.json()

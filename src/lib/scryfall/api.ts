@@ -1,5 +1,5 @@
 const SCRYFALL_BASE = 'https://api.scryfall.com'
-const SCRYFALL_HEADERS = { 'User-Agent': 'MTGCollectionManager/1.0 (personal app)', 'Accept': 'application/json' }
+export const SCRYFALL_HEADERS = { 'User-Agent': 'MTGCollectionManager/1.0 (personal app)', 'Accept': 'application/json' }
 
 export interface ScryfallCard {
   id: string

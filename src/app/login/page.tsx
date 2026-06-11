@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { login } from './actions'
 
 export default function LoginPage() {
@@ -64,10 +65,17 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-orange-700 hover:bg-orange-600 disabled:opacity-50 text-white text-sm font-medium rounded-lg py-2 transition-colors"
+            className="w-full bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg py-2 transition-colors"
           >
             {loading ? 'Accesso in corso...' : 'Accedi'}
           </button>
+
+          <p className="text-center text-xs text-gray-500">
+            Non hai un account?{' '}
+            <Link href="/signup" className="text-orange-400 hover:text-orange-300">
+              Registrati
+            </Link>
+          </p>
         </form>
       </div>
     </div>

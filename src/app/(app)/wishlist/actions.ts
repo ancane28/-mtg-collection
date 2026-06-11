@@ -16,6 +16,9 @@ export async function addToWishlist(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Non autenticato' }
+
   const card = await fetchCardByName(cardName)
   if (!card) return { error: 'Carta non trovata su Scryfall' }
 
@@ -44,6 +47,7 @@ export async function addToWishlist(
       quantity_wanted: qty,
       priority,
       notes: notes?.trim() || null,
+      user_id: user.id,
     }) as { error: { message: string } | null }
 
   if (error) return { error: error.message }
@@ -88,6 +92,9 @@ export async function moveToCollection(wishlistId: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Non autenticato' }
+
   const { data: item, error: fetchError } = await db
     .from('wishlist_items')
     .select('card_id, quantity_wanted')
@@ -111,7 +118,7 @@ export async function moveToCollection(wishlistId: string) {
   } else {
     const { error } = await db
       .from('collection_items')
-      .insert({ card_id: item.card_id, quantity_owned: item.quantity_wanted }) as { error: { message: string } | null }
+      .insert({ card_id: item.card_id, quantity_owned: item.quantity_wanted, user_id: user.id }) as { error: { message: string } | null }
     if (error) return { error: error.message }
   }
 

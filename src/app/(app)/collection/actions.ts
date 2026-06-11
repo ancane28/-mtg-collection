@@ -24,6 +24,9 @@ export async function addCardToCollection(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Non autenticato' }
+
   const card = await fetchCardByName(cardName)
   if (!card) return { error: 'Carta non trovata su Scryfall' }
 
@@ -63,6 +66,7 @@ export async function addCardToCollection(
       card_id: cardRow.id,
       quantity_owned: qty,
       is_foil: isFoil,
+      user_id: user.id,
     }
     if (printing) {
       insertData.scryfall_print_id = printing.scryfall_print_id
@@ -122,6 +126,9 @@ export async function importCollection(text: string) {
   const supabase = await createClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Non autenticato' }
 
   const rawLines = parseDecklist(text)
   if (rawLines.length === 0) return { error: 'Nessuna carta trovata nel testo' }
@@ -243,6 +250,7 @@ export async function importCollection(text: string) {
         card_id: card.id,
         quantity_owned: entry.qty,
         is_foil: false,
+        user_id: user.id,
       }
       if (printing) {
         insertData.scryfall_print_id = printing.scryfall_print_id

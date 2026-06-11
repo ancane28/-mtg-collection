@@ -9,9 +9,11 @@ export async function createDeck(name: string, format: string | null) {
   const supabase = await createClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Non autenticato' }
   const { data, error } = await db
     .from('decks')
-    .insert({ name: name.trim(), format })
+    .insert({ name: name.trim(), format, user_id: user.id })
     .select('id')
     .single() as { data: { id: string } | null; error: { message: string } | null }
   if (error || !data) return { error: error?.message ?? 'Errore creazione mazzo' }
@@ -27,6 +29,8 @@ export async function addCardToDeck(
 ) {
   const supabase = await createClient()
   const db = supabase as any
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Non autenticato' }
 
   // Cerca nel DB locale
   type CardRow = { id: string; oracle_id: string; name_en: string }
@@ -64,7 +68,7 @@ export async function addCardToDeck(
   if (existing) {
     await db.from('deck_cards').update({ quantity: existing.quantity + qty }).eq('id', existing.id)
   } else {
-    await db.from('deck_cards').insert({ deck_id: deckId, card_id: card.id, quantity: qty, usage_type: usageType })
+    await db.from('deck_cards').insert({ deck_id: deckId, card_id: card.id, quantity: qty, usage_type: usageType, user_id: user.id })
   }
 
   revalidatePath(`/decks/${deckId}`)
@@ -185,6 +189,8 @@ export async function importDecklist(deckId: string, text: string) {
   const supabase = await createClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Non autenticato' }
   const lines = parseDecklist(text)
   if (lines.length === 0) return { error: 'Nessuna carta trovata nel testo' }
 
@@ -255,8 +261,8 @@ export async function importDecklist(deckId: string, text: string) {
     const realQty = Math.min(qty, Math.max(0, available))
     const proxyQty = qty - realQty
 
-    if (realQty > 0) realRows.push({ deck_id: deckId, card_id: card.id, quantity: realQty, usage_type: 'real' })
-    if (proxyQty > 0) proxyRows.push({ deck_id: deckId, card_id: card.id, quantity: proxyQty, usage_type: 'proxy' })
+    if (realQty > 0) realRows.push({ deck_id: deckId, card_id: card.id, quantity: realQty, usage_type: 'real', user_id: user.id })
+    if (proxyQty > 0) proxyRows.push({ deck_id: deckId, card_id: card.id, quantity: proxyQty, usage_type: 'proxy', user_id: user.id })
   }
 
   if (realRows.length > 0) {

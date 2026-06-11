@@ -1,4 +1,5 @@
 const SCRYFALL_BASE = 'https://api.scryfall.com'
+const SCRYFALL_HEADERS = { 'User-Agent': 'MTGCollectionManager/1.0 (personal app)', 'Accept': 'application/json' }
 
 export interface ScryfallCard {
   id: string
@@ -50,7 +51,7 @@ export interface ScryfallSearchResult {
 export async function fetchCardByName(name: string): Promise<ScryfallCard | null> {
   try {
     const url = `${SCRYFALL_BASE}/cards/named?fuzzy=${encodeURIComponent(name)}`
-    const res = await fetch(url, { next: { revalidate: 86400 } })
+    const res = await fetch(url, { headers: SCRYFALL_HEADERS, next: { revalidate: 86400 } })
     if (!res.ok) return null
     return res.json() as Promise<ScryfallCard>
   } catch {
@@ -62,7 +63,7 @@ export async function fetchCardByName(name: string): Promise<ScryfallCard | null
 export async function searchCards(query: string): Promise<ScryfallCard[]> {
   try {
     const url = `${SCRYFALL_BASE}/cards/search?q=${encodeURIComponent(query)}&unique=cards&order=name`
-    const res = await fetch(url, { next: { revalidate: 3600 } })
+    const res = await fetch(url, { headers: SCRYFALL_HEADERS, next: { revalidate: 3600 } })
     if (!res.ok) return []
     const data: ScryfallSearchResult = await res.json()
     return data.data || []
@@ -87,7 +88,7 @@ export async function fetchCardsByNames(names: string[]): Promise<{
     try {
       const res = await fetch(`${SCRYFALL_BASE}/cards/collection`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...SCRYFALL_HEADERS, 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifiers: batch.map((name) => ({ name })) }),
         cache: 'no-store',
       })
@@ -107,7 +108,7 @@ export async function fetchCardsByNames(names: string[]): Promise<{
     try {
       const res = await fetch(
         `${SCRYFALL_BASE}/cards/named?fuzzy=${encodeURIComponent(name)}`,
-        { cache: 'no-store' }
+        { headers: SCRYFALL_HEADERS, cache: 'no-store' }
       )
       if (res.ok) {
         allFound.push(await res.json() as ScryfallCard)
@@ -127,7 +128,7 @@ export async function autocompleteCardName(partial: string): Promise<string[]> {
   if (partial.length < 2) return []
   try {
     const url = `${SCRYFALL_BASE}/cards/autocomplete?q=${encodeURIComponent(partial)}`
-    const res = await fetch(url, { next: { revalidate: 3600 } })
+    const res = await fetch(url, { headers: SCRYFALL_HEADERS, next: { revalidate: 3600 } })
     if (!res.ok) return []
     const data: { data: string[] } = await res.json()
     return data.data || []

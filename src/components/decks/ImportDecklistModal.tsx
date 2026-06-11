@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
@@ -64,14 +64,14 @@ export function ImportDecklistModal({ open, deckId, onClose, onImported }: Impor
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder={"1 Sol Ring\n4 Lightning Bolt\n2 Counterspell\n..."}
-              className="w-full h-52 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white font-mono resize-none focus:outline-none focus:border-purple-500 mb-4"
+              className="w-full h-52 bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-2 text-sm text-white font-mono resize-none focus:outline-none focus:border-orange-500 mb-4"
               disabled={loading}
             />
 
             {error && <p className="text-sm text-red-400 mb-3">{error}</p>}
 
             {loading && (
-              <p className="text-sm text-purple-400 mb-3 animate-pulse">
+              <p className="text-sm text-orange-400 mb-3 animate-pulse">
                 Ricerca su Scryfall in corso... (può richiedere qualche secondo)
               </p>
             )}

@@ -22,7 +22,7 @@ export function SetCommanderButton({ deckId, currentCommanderId, deckCards }: Se
     <>
       <button
         onClick={() => setOpen(true)}
-        className="text-xs text-gray-500 hover:text-purple-400 transition-colors underline underline-offset-2"
+        className="text-xs text-gray-500 hover:text-orange-400 transition-colors underline underline-offset-2"
       >
         {currentCommanderId ? 'Cambia' : 'Imposta comandante'}
       </button>

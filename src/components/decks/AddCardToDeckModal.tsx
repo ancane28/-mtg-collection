@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -98,10 +98,10 @@ export function AddCardToDeckModal({ open, deckId, onClose }: AddCardToDeckModal
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
             placeholder="es. Sol Ring"
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500"
+            className="w-full bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-orange-500"
           />
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden shadow-xl">
+            <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-gray-800/80 border border-gray-700/60 rounded-lg overflow-hidden shadow-xl">
               {suggestions.map((s) => (
                 <button
                   key={s}
@@ -125,7 +125,7 @@ export function AddCardToDeckModal({ open, deckId, onClose }: AddCardToDeckModal
               max={99}
               value={qty}
               onChange={(e) => setQty(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm text-center focus:outline-none focus:border-purple-500"
+              className="w-20 bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-2 text-white text-sm text-center focus:outline-none focus:border-orange-500"
             />
           </div>
           <div className="flex-1">

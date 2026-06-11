@@ -31,7 +31,7 @@ interface Props {
 
 function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+    <div className="bg-gray-900/60 border border-gray-800/60 rounded-xl p-5">
       <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">{label}</p>
       <p className="text-3xl font-bold text-white">{value}</p>
       {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
@@ -82,7 +82,7 @@ export function DashboardClient({ stats, overcommitCards, decks }: Props) {
       {/* Middle row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Rarity distribution */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <div className="bg-gray-900/60 border border-gray-800/60 rounded-xl p-5">
           <h2 className="text-sm font-semibold text-gray-300 mb-4">Distribuzione rarità</h2>
           <div className="space-y-3">
             {RARITY_CONFIG.map(({ key, label, color }) => {
@@ -107,7 +107,7 @@ export function DashboardClient({ stats, overcommitCards, decks }: Props) {
         </div>
 
         {/* Overcommit alert */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <div className="bg-gray-900/60 border border-gray-800/60 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-gray-300">Overcommit</h2>
             {overcommitCards.length > 0 && (
@@ -136,10 +136,10 @@ export function DashboardClient({ stats, overcommitCards, decks }: Props) {
       </div>
 
       {/* Decks list */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+      <div className="bg-gray-900/60 border border-gray-800/60 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-gray-300">I tuoi mazzi</h2>
-          <Link href="/decks" className="text-xs text-purple-400 hover:text-purple-300">
+          <Link href="/decks" className="text-xs text-orange-400 hover:text-orange-300">
             Vai ai mazzi →
           </Link>
         </div>
@@ -155,7 +155,7 @@ export function DashboardClient({ stats, overcommitCards, decks }: Props) {
                 <Link
                   key={deck.id}
                   href={`/decks/${deck.id}`}
-                  className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors group"
+                  className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 rounded-lg hover:bg-gray-800/60 transition-colors group"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-100 truncate group-hover:text-white">

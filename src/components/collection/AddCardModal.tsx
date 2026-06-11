@@ -125,10 +125,10 @@ export function AddCardModal({ open, onClose }: AddCardModalProps) {
                   value={query}
                   onChange={e => { setQuery(e.target.value); setSelected(null) }}
                   placeholder="Es: Lightning Bolt"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                  className="w-full bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-orange-500"
                 />
                 {showSuggestions && (
-                  <ul className="absolute z-20 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden shadow-xl">
+                  <ul className="absolute z-20 w-full mt-1 bg-gray-800/80 border border-gray-700/60 rounded-lg overflow-hidden shadow-xl">
                     {suggestions.map(name => (
                       <li
                         key={name}
@@ -150,7 +150,7 @@ export function AddCardModal({ open, onClose }: AddCardModalProps) {
                   max={99}
                   value={qty}
                   onChange={e => setQty(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-24 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500"
+                  className="w-24 bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-orange-500"
                 />
               </div>
 
@@ -208,7 +208,7 @@ export function AddCardModal({ open, onClose }: AddCardModalProps) {
                         onClick={() => { setSelectedPrinting(isSelected ? null : p); setIsFoil(false) }}
                         className={`relative flex flex-col rounded-lg overflow-hidden border-2 transition-all ${
                           isSelected
-                            ? 'border-purple-500 ring-1 ring-purple-500'
+                            ? 'border-orange-500 ring-1 ring-orange-500'
                             : 'border-gray-700 hover:border-gray-500'
                         }`}
                       >
@@ -231,14 +231,14 @@ export function AddCardModal({ open, onClose }: AddCardModalProps) {
                 <button
                   onClick={() => setIsFoil(!isFoil)}
                   className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                    isFoil ? 'bg-purple-600' : 'bg-gray-700'
+                    isFoil ? 'bg-orange-600' : 'bg-gray-700'
                   }`}
                 >
                   <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
                     isFoil ? 'translate-x-4' : 'translate-x-1'
                   }`} />
                 </button>
-                {isFoil && <span className="text-xs text-purple-400">✨ Foil</span>}
+                {isFoil && <span className="text-xs text-orange-400">✨ Foil</span>}
               </div>
             )}
 

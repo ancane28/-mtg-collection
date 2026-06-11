@@ -13,7 +13,7 @@ export default async function SettingsPage() {
       <h1 className="text-2xl font-bold text-white mb-1">Impostazioni</h1>
       <p className="text-sm text-gray-400 mb-8">Configurazione e manutenzione del database locale</p>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+      <div className="bg-gray-900/60 border border-gray-800/60 rounded-xl p-6 space-y-4">
         <div>
           <h2 className="text-base font-semibold text-white mb-1">Database carte</h2>
           <p className="text-sm text-gray-400">
@@ -42,7 +42,7 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <div className="mt-6 bg-gray-900 border border-gray-800 rounded-xl p-4 md:hidden">
+      <div className="mt-6 bg-gray-900/60 border border-gray-800/60 rounded-xl p-4 md:hidden">
         <h2 className="text-base font-semibold text-white mb-3">Account</h2>
         <LogoutButton />
       </div>

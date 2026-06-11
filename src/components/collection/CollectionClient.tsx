@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
@@ -312,7 +312,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
           placeholder="Cerca per nome…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-gray-900 border border-gray-800 rounded-xl pl-9 pr-9 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors"
+          className="w-full bg-gray-900/60 border border-gray-800/60 rounded-xl pl-9 pr-9 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-orange-500 transition-colors"
         />
         {search && (
           <button
@@ -327,7 +327,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
       </div>
 
       {/* Barra filtri + ordinamento */}
-      <div className="mb-4 p-3 bg-gray-900 border border-gray-800 rounded-xl space-y-2.5">
+      <div className="mb-4 p-3 bg-gray-900/60 border border-gray-800/60 rounded-xl space-y-2.5">
         {/* Riga 1: Colori + Rarità */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1.5">
@@ -374,7 +374,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                 onClick={() => setActiveTypes(toggle(activeTypes, t))}
                 className={`px-2 py-0.5 rounded text-xs transition-all border ${
                   activeTypes.has(t)
-                    ? 'text-purple-300 border-purple-500 bg-purple-900/30'
+                    ? 'text-orange-300 border-orange-500 bg-orange-900/30'
                     : 'text-gray-500 border-gray-700 hover:border-gray-500'
                 }`}
               >
@@ -394,7 +394,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
-              className="bg-gray-800 border border-gray-700 rounded-lg text-sm text-white px-2 py-1 focus:outline-none focus:border-purple-500"
+              className="bg-gray-800/80 border border-gray-700/60 rounded-lg text-sm text-white px-2 py-1 focus:outline-none focus:border-orange-500"
             >
               {SORT_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -416,8 +416,8 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
       )}
 
       {selected.size > 0 && (
-        <div className="mb-4 flex items-center justify-between gap-3 px-4 py-3 bg-purple-900/20 border border-purple-800/40 rounded-xl">
-          <span className="text-sm text-purple-300 font-medium">
+        <div className="mb-4 flex items-center justify-between gap-3 px-4 py-3 bg-orange-900/20 border border-orange-800/40 rounded-xl">
+          <span className="text-sm text-orange-300 font-medium">
             {selected.size} {selected.size === 1 ? 'carta selezionata' : 'carte selezionate'}
           </span>
           <div className="flex gap-2">
@@ -446,22 +446,22 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
           <p>Nessuna carta corrisponde ai filtri selezionati.</p>
           <button
             onClick={() => { setSearch(''); setActiveColors(new Set()); setActiveRarities(new Set()); setActiveTypes(new Set()) }}
-            className="mt-2 text-sm text-purple-400 hover:text-purple-300"
+            className="mt-2 text-sm text-orange-400 hover:text-orange-300"
           >
             Azzera filtri
           </button>
         </div>
       ) : view === 'list' ? (
         /* ── VISTA LISTA: raggruppata per oracle, espandibile per stampe ── */
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div className="bg-gray-900/60 border border-gray-800/60 rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[700px]">
             <thead>
-              <tr className="border-b border-gray-800 text-gray-400 text-xs uppercase tracking-wider">
+              <tr className="border-b border-gray-800/50 text-gray-400 text-xs uppercase tracking-wider">
                 <th className="px-3 py-3 w-8">
                   <input
                     type="checkbox"
-                    className="rounded border-gray-600 bg-gray-800 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900"
+                    className="rounded border-gray-600 bg-gray-800 text-orange-500 focus:ring-orange-500 focus:ring-offset-gray-900"
                     checked={groupedList.length > 0 && selected.size === groupedList.length}
                     onChange={toggleSelectAll}
                   />
@@ -477,7 +477,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                 <th className="px-4 py-3 w-8"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/50">
+            <tbody className="divide-y divide-gray-800/30">
               {groupedList.map(group => {
                 const variant = availabilityVariant(group.qty_available)
                 const isExpanded = expandedId === group.oracle_id
@@ -492,13 +492,13 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                   <React.Fragment key={group.oracle_id}>
                     {/* Riga gruppo oracle */}
                     <tr
-                      className={`group hover:bg-gray-800/40 transition-colors ${isExpandable ? 'cursor-pointer' : ''} ${isExpanded ? 'bg-gray-800/30' : ''} ${selected.has(group.oracle_id) ? 'bg-purple-900/10' : ''}`}
+                      className={`group hover:bg-gray-800/40 transition-colors ${isExpandable ? 'cursor-pointer' : ''} ${isExpanded ? 'bg-gray-800/30' : ''} ${selected.has(group.oracle_id) ? 'bg-orange-900/10' : ''}`}
                       onClick={() => isExpandable && setExpandedId(isExpanded ? null : group.oracle_id)}
                     >
                       <td className="px-3 py-2" onClick={e => e.stopPropagation()}>
                         <input
                           type="checkbox"
-                          className="rounded border-gray-600 bg-gray-800 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900"
+                          className="rounded border-gray-600 bg-gray-800 text-orange-500 focus:ring-orange-500 focus:ring-offset-gray-900"
                           checked={selected.has(group.oracle_id)}
                           onChange={() => toggleSelect(group.oracle_id)}
                         />
@@ -531,7 +531,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                             type="number" min={0} max={99}
                             value={editing!.qty}
                             onChange={e => setEditing({ id: singlePrinting.id, qty: parseInt(e.target.value) || 0 })}
-                            className="w-16 bg-gray-800 border border-purple-500 rounded px-2 py-0.5 text-white text-sm text-center focus:outline-none"
+                            className="w-16 bg-gray-800 border border-orange-500 rounded px-2 py-0.5 text-white text-sm text-center focus:outline-none"
                             autoFocus
                           />
                         ) : (
@@ -588,7 +588,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                                         )}
                                       </span>
                                       {printing.is_foil && (
-                                        <span className="text-xs px-1.5 py-0.5 rounded bg-purple-900/40 text-purple-400 border border-purple-800/40">✨ Foil</span>
+                                        <span className="text-xs px-1.5 py-0.5 rounded bg-orange-900/40 text-orange-400 border border-orange-800/40">✨ Foil</span>
                                       )}
                                     </div>
                                     <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
@@ -598,7 +598,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                                             type="number" min={0} max={99}
                                             value={editing.qty}
                                             onChange={e => setEditing({ id: printing.id, qty: parseInt(e.target.value) || 0 })}
-                                            className="w-14 bg-gray-800 border border-purple-500 rounded px-2 py-0.5 text-white text-sm text-center focus:outline-none"
+                                            className="w-14 bg-gray-800 border border-orange-500 rounded px-2 py-0.5 text-white text-sm text-center focus:outline-none"
                                             autoFocus
                                           />
                                           <Button size="sm" variant="primary" loading={saving} onClick={handleSaveQty}>✓</Button>
@@ -637,7 +637,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                                       type="number" min={0} max={99}
                                       value={editing.qty}
                                       onChange={e => setEditing({ id: printing.id, qty: parseInt(e.target.value) || 0 })}
-                                      className="w-14 bg-gray-800 border border-purple-500 rounded px-2 py-0.5 text-white text-sm text-center focus:outline-none"
+                                      className="w-14 bg-gray-800 border border-orange-500 rounded px-2 py-0.5 text-white text-sm text-center focus:outline-none"
                                       autoFocus
                                     />
                                     <Button size="sm" variant="primary" loading={saving} onClick={handleSaveQty}>✓</Button>
@@ -657,7 +657,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                           {hasUsages && (
                             <div className="flex flex-wrap gap-2">
                               {usages.map((u, i) => (
-                                <div key={i} className="flex items-center gap-1.5 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5">
+                                <div key={i} className="flex items-center gap-1.5 bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-1.5">
                                   <span className="text-sm text-white">{u.deck_name}</span>
                                   <span className="text-xs text-gray-500">{u.quantity}x</span>
                                   <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
@@ -702,7 +702,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                           </div>
                         )}
                         {item.is_foil && (
-                          <span className="absolute top-1 right-1 text-[10px] px-1 py-0.5 rounded bg-purple-900/80 text-purple-300 border border-purple-700/50">✨</span>
+                          <span className="absolute top-1 right-1 text-[10px] px-1 py-0.5 rounded bg-orange-900/80 text-orange-300 border border-orange-700/50">✨</span>
                         )}
                         {item.quantity_owned > 1 && (
                           <span className="absolute bottom-1 right-1 text-[10px] px-1.5 py-0.5 rounded-full bg-black/70 text-white font-bold">×{item.quantity_owned}</span>

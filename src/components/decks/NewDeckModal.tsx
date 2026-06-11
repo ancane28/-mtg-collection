@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -61,7 +61,7 @@ export function NewDeckModal({ open, onClose }: NewDeckModalProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="es. Grixis Control"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500"
+              className="w-full bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-orange-500"
               autoFocus
               required
             />
@@ -72,7 +72,7 @@ export function NewDeckModal({ open, onClose }: NewDeckModalProps) {
             <select
               value={format}
               onChange={(e) => setFormat(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500"
+              className="w-full bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-orange-500"
             >
               {FORMATS.map((f) => (
                 <option key={f.value} value={f.value}>{f.label}</option>

@@ -71,35 +71,35 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="hidden md:flex w-56 bg-gray-900 border-r border-gray-800 flex-col shrink-0">
+    <aside className="hidden md:flex w-56 bg-gray-900/70 backdrop-blur-sm border-r border-gray-800/50 flex-col shrink-0">
       {/* Logo / Header */}
-      <div className="px-5 py-6 border-b border-gray-800">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-purple-700 flex items-center justify-center text-white font-bold text-sm">
+      <div className="px-5 py-6 border-b border-gray-800/50">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-orange-900/40">
             M
           </div>
           <div>
             <h1 className="text-sm font-bold text-white leading-tight">MTG Collection</h1>
-            <p className="text-xs text-gray-500">Manager</p>
+            <p className="text-[10px] text-gray-500 uppercase tracking-wider">Manager</p>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-1">
+      <nav className="flex-1 p-3 space-y-0.5">
         {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href)
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-purple-900/40 text-purple-300 border border-purple-800/40'
-                  : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
+                  ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                  : 'text-gray-500 hover:bg-gray-800/60 hover:text-gray-200 border border-transparent'
               }`}
             >
-              <span className={isActive ? 'text-purple-400' : 'text-gray-500'}>
+              <span className={`transition-colors ${isActive ? 'text-orange-400' : 'text-gray-600'}`}>
                 {item.icon}
               </span>
               {item.label}
@@ -109,10 +109,10 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-gray-800 space-y-2">
+      <div className="px-4 py-3 border-t border-gray-800/50 space-y-2">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-500 hover:bg-gray-800 hover:text-gray-300 transition-colors"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-600 hover:bg-gray-800/60 hover:text-gray-300 transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -120,7 +120,7 @@ export function Sidebar() {
           </svg>
           Esci
         </button>
-        <p className="text-xs text-gray-600 px-3">MVP v0.1</p>
+        <p className="text-[10px] text-gray-700 px-3 uppercase tracking-wider">v0.1</p>
       </div>
     </aside>
   )

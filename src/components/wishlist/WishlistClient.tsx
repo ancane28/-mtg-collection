@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/Button'
@@ -112,7 +112,7 @@ export function WishlistClient({ items, error }: WishlistClientProps) {
               ? `${filtered.length} / ${items.length} carte`
               : `${items.length} carte`}
             {items.length > 0 && totalEur > 0 && (
-              <span className="ml-3 text-purple-400">≈ €{totalEur.toFixed(2)} totale</span>
+              <span className="ml-3 text-orange-400">≈ €{totalEur.toFixed(2)} totale</span>
             )}
           </p>
         </div>
@@ -131,7 +131,7 @@ export function WishlistClient({ items, error }: WishlistClientProps) {
           placeholder="Cerca per nome…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full bg-gray-900 border border-gray-800 rounded-xl pl-9 pr-9 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors"
+          className="w-full bg-gray-900/60 border border-gray-800/60 rounded-xl pl-9 pr-9 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-orange-500 transition-colors"
         />
         {search && (
           <button
@@ -145,7 +145,7 @@ export function WishlistClient({ items, error }: WishlistClientProps) {
         )}
       </div>
 
-      <div className="mb-4 p-3 bg-gray-900 border border-gray-800 rounded-xl flex flex-wrap items-center gap-3">
+      <div className="mb-4 p-3 bg-gray-900/60 border border-gray-800/60 rounded-xl flex flex-wrap items-center gap-3">
         {/* Filtro priorità */}
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-gray-500 uppercase tracking-wider mr-1">Priorità</span>
@@ -180,7 +180,7 @@ export function WishlistClient({ items, error }: WishlistClientProps) {
           <select
             value={sort}
             onChange={e => setSort(e.target.value as SortKey)}
-            className="bg-gray-800 border border-gray-700 rounded-lg text-sm text-white px-2 py-1 focus:outline-none focus:border-purple-500"
+            className="bg-gray-800/80 border border-gray-700/60 rounded-lg text-sm text-white px-2 py-1 focus:outline-none focus:border-orange-500"
           >
             {SORT_OPTIONS.map(o => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -212,17 +212,17 @@ export function WishlistClient({ items, error }: WishlistClientProps) {
           <p>Nessuna carta corrisponde ai filtri.</p>
           <button
             onClick={() => { setSearch(''); setFilterPriority(null) }}
-            className="mt-2 text-sm text-purple-400 hover:text-purple-300"
+            className="mt-2 text-sm text-orange-400 hover:text-orange-300"
           >
             Azzera filtri
           </button>
         </div>
       ) : (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div className="bg-gray-900/60 border border-gray-800/60 rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[700px]">
             <thead>
-              <tr className="border-b border-gray-800 text-gray-400 text-xs uppercase tracking-wider">
+              <tr className="border-b border-gray-800/50 text-gray-400 text-xs uppercase tracking-wider">
                 <th className="px-4 py-3 text-left">Carta</th>
                 <th className="px-4 py-3 text-left">Tipo</th>
                 <th className="px-4 py-3 text-center">Mana</th>
@@ -234,7 +234,7 @@ export function WishlistClient({ items, error }: WishlistClientProps) {
                 <th className="px-4 py-3 w-36"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/50">
+            <tbody className="divide-y divide-gray-800/30">
               {filtered.map(item => {
                 const isEditing = editing?.id === item.id
                 const isMoving = movingId === item.id
@@ -275,7 +275,7 @@ export function WishlistClient({ items, error }: WishlistClientProps) {
                           type="number" min={1} max={99}
                           value={editing.qty}
                           onChange={e => setEditing({ ...editing, qty: parseInt(e.target.value) || 1 })}
-                          className="w-16 bg-gray-800 border border-purple-500 rounded px-2 py-0.5 text-white text-sm text-center focus:outline-none"
+                          className="w-16 bg-gray-800 border border-orange-500 rounded px-2 py-0.5 text-white text-sm text-center focus:outline-none"
                         />
                       ) : (
                         <span className="text-white font-medium">{item.quantity_wanted}</span>
@@ -286,7 +286,7 @@ export function WishlistClient({ items, error }: WishlistClientProps) {
                         <select
                           value={editing.priority}
                           onChange={e => setEditing({ ...editing, priority: e.target.value as Priority })}
-                          className="bg-gray-800 border border-gray-700 rounded text-xs text-white px-1 py-0.5 focus:outline-none focus:border-purple-500"
+                          className="bg-gray-800 border border-gray-700 rounded text-xs text-white px-1 py-0.5 focus:outline-none focus:border-orange-500"
                         >
                           <option value="high">Alta</option>
                           <option value="medium">Media</option>
@@ -305,7 +305,7 @@ export function WishlistClient({ items, error }: WishlistClientProps) {
                           value={editing.notes}
                           onChange={e => setEditing({ ...editing, notes: e.target.value })}
                           placeholder="Note…"
-                          className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-0.5 text-white text-xs focus:outline-none focus:border-purple-500"
+                          className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-0.5 text-white text-xs focus:outline-none focus:border-orange-500"
                         />
                       ) : (
                         <span className="truncate block">{item.notes ?? '—'}</span>

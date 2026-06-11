@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
@@ -49,7 +49,7 @@ export function ImportCollectionModal({ open, onClose }: ImportCollectionModalPr
         </p>
 
         <textarea
-          className="w-full h-56 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-purple-500 font-mono"
+          className="w-full h-56 bg-gray-800/80 border border-gray-700/60 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-orange-500 font-mono"
           placeholder={"4 Lightning Bolt\n2 Counterspell\n1 Sol Ring"}
           value={text}
           onChange={(e) => setText(e.target.value)}

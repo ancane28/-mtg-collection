@@ -7,19 +7,21 @@
   --color-proxy: #C62828;
   --color-overcommit: #E65100;
   --color-available: #1565C0;
-  --color-accent: #533483;
+  --color-accent: #ea580c;
 }
 
 @layer base {
   body {
-    @apply bg-gray-950 text-gray-100 antialiased;
+    background: linear-gradient(160deg, #080a10 0%, #0d1020 50%, #080a10 100%);
+    background-attachment: fixed;
+    @apply text-gray-100 antialiased;
   }
 }
 
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #374151 transparent;
+    scrollbar-color: #1f2234 transparent;
   }
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
@@ -28,7 +30,7 @@
     background: transparent;
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #374151;
+    background-color: #1f2234;
     border-radius: 3px;
   }
 }

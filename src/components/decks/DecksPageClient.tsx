@@ -62,7 +62,7 @@ export function DecksPageClient({ decks }: DecksPageClientProps) {
             placeholder="Cerca per nome mazzo o comandante…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-900 border border-gray-800 rounded-xl pl-9 pr-9 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors"
+            className="w-full bg-gray-900/60 border border-gray-800/60 rounded-xl pl-9 pr-9 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-orange-500 transition-colors"
           />
           {search && (
             <button
@@ -91,14 +91,14 @@ export function DecksPageClient({ decks }: DecksPageClientProps) {
 
             return (
               <Link key={deck.id} href={`/decks/${deck.id}`}>
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 hover:bg-gray-900/80 transition-all cursor-pointer group">
+                <div className="bg-gray-900/60 border border-gray-800/60 rounded-xl p-5 hover:border-gray-700 hover:bg-gray-900/80 transition-all cursor-pointer group">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-white truncate group-hover:text-purple-300 transition-colors">
+                      <h3 className="font-semibold text-white truncate group-hover:text-orange-300 transition-colors">
                         {deck.name}
                       </h3>
                       {deck.format && (
-                        <span className="text-xs text-purple-400 mt-0.5 block">
+                        <span className="text-xs text-orange-400 mt-0.5 block">
                           {FORMAT_LABELS[deck.format] ?? deck.format}
                         </span>
                       )}

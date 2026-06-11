@@ -62,7 +62,7 @@ export function BottomNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-800 flex md:hidden safe-area-pb">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900/90 backdrop-blur-sm border-t border-gray-800/50 flex md:hidden safe-area-pb">
       {navItems.map((item) => {
         const isActive = pathname.startsWith(item.href)
         return (
@@ -70,10 +70,10 @@ export function BottomNav() {
             key={item.href}
             href={item.href}
             className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-[10px] font-medium transition-colors ${
-              isActive ? 'text-purple-400' : 'text-gray-500 hover:text-gray-300'
+              isActive ? 'text-orange-400' : 'text-gray-500 hover:text-gray-300'
             }`}
           >
-            <span className={isActive ? 'text-purple-400' : 'text-gray-500'}>
+            <span className={isActive ? 'text-orange-400' : 'text-gray-500'}>
               {item.icon}
             </span>
             {item.label}

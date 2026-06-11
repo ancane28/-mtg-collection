@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
@@ -76,7 +76,7 @@ export function SetCommanderModal({ open, deckId, currentCommanderId, deckCards,
             placeholder="Cerca carta…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-9 pr-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500"
+            className="w-full bg-gray-800/80 border border-gray-700/60 rounded-xl pl-9 pr-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-orange-500"
             autoFocus
           />
         </div>
@@ -111,7 +111,7 @@ export function SetCommanderModal({ open, deckId, currentCommanderId, deckCards,
                   disabled={saving !== null || isCurrent}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors disabled:opacity-50 mx-2 text-left ${
                     isCurrent
-                      ? 'bg-purple-900/30 border border-purple-700/50'
+                      ? 'bg-orange-900/30 border border-orange-700/50'
                       : 'hover:bg-gray-800'
                   }`}
                   style={{ width: 'calc(100% - 1rem)' }}
@@ -134,10 +134,10 @@ export function SetCommanderModal({ open, deckId, currentCommanderId, deckCards,
                     <span className="text-xs text-yellow-500 shrink-0">★</span>
                   )}
                   {isCurrent && (
-                    <span className="text-xs text-purple-400 shrink-0">attuale</span>
+                    <span className="text-xs text-orange-400 shrink-0">attuale</span>
                   )}
                   {isSaving && (
-                    <svg className="animate-spin w-4 h-4 text-purple-400 shrink-0" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin w-4 h-4 text-orange-400 shrink-0" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
@@ -90,10 +90,10 @@ export function AddToWishlistModal({ open, onClose }: AddToWishlistModalProps) {
               value={query}
               onChange={e => { setQuery(e.target.value); setSelected(null) }}
               placeholder="Es: Tarmogoyf"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500"
+              className="w-full bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-orange-500"
             />
             {showSuggestions && (
-              <ul className="absolute z-20 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden shadow-xl">
+              <ul className="absolute z-20 w-full mt-1 bg-gray-800/80 border border-gray-700/60 rounded-lg overflow-hidden shadow-xl">
                 {suggestions.map(name => (
                   <li
                     key={name}
@@ -116,7 +116,7 @@ export function AddToWishlistModal({ open, onClose }: AddToWishlistModalProps) {
                 max={99}
                 value={qty}
                 onChange={e => setQty(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-24 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500"
+                className="w-24 bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-orange-500"
               />
             </div>
 
@@ -125,7 +125,7 @@ export function AddToWishlistModal({ open, onClose }: AddToWishlistModalProps) {
               <select
                 value={priority}
                 onChange={e => setPriority(e.target.value as 'low' | 'medium' | 'high')}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500"
+                className="w-full bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-orange-500"
               >
                 {PRIORITY_OPTIONS.map(o => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -141,7 +141,7 @@ export function AddToWishlistModal({ open, onClose }: AddToWishlistModalProps) {
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="Es: per il mazzo Commander"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500"
+              className="w-full bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-orange-500"
             />
           </div>
 

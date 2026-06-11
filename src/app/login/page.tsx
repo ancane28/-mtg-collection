@@ -23,7 +23,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-950 flex items-center justify-center">
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-3 mb-8 justify-center">
-          <div className="w-9 h-9 rounded-lg bg-purple-700 flex items-center justify-center text-white font-bold text-lg">
+          <div className="w-9 h-9 rounded-lg bg-orange-700 flex items-center justify-center text-white font-bold text-lg">
             M
           </div>
           <div>
@@ -32,7 +32,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-gray-900/60 border border-gray-800/60 rounded-xl p-6 space-y-4">
           <h2 className="text-white font-semibold text-base">Accedi</h2>
 
           <div className="space-y-1">
@@ -42,7 +42,7 @@ export default function LoginPage() {
               type="email"
               required
               autoComplete="email"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-600"
+              className="w-full bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-600"
             />
           </div>
 
@@ -53,7 +53,7 @@ export default function LoginPage() {
               type="password"
               required
               autoComplete="current-password"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-600"
+              className="w-full bg-gray-800/80 border border-gray-700/60 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-600"
             />
           </div>
 
@@ -64,7 +64,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white text-sm font-medium rounded-lg py-2 transition-colors"
+            className="w-full bg-orange-700 hover:bg-orange-600 disabled:opacity-50 text-white text-sm font-medium rounded-lg py-2 transition-colors"
           >
             {loading ? 'Accesso in corso...' : 'Accedi'}
           </button>

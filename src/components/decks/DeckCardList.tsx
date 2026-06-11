@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
@@ -98,7 +98,7 @@ export function DeckCardList({ deckCards, availabilityMap }: DeckCardListProps) 
           placeholder="Cerca carta nel mazzo…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-gray-900 border border-gray-800 rounded-xl pl-9 pr-9 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors"
+          className="w-full bg-gray-900/60 border border-gray-800/60 rounded-xl pl-9 pr-9 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-orange-500 transition-colors"
         />
         {search && (
           <button
@@ -123,7 +123,7 @@ export function DeckCardList({ deckCards, availabilityMap }: DeckCardListProps) 
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 {type} ({grouped[type].reduce((s, r) => s + r.quantity, 0)})
               </h3>
-              <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+              <div className="bg-gray-900/60 border border-gray-800/60 rounded-xl overflow-hidden">
                 {grouped[type].map((row, idx) => {
                   const isReal = row.usage_type === 'real'
                   const available = availabilityMap[row.card?.oracle_id] ?? 0

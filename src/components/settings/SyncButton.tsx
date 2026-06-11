@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -22,7 +22,7 @@ export function SyncButton() {
   return (
     <div className="space-y-3">
       {loading && (
-        <p className="text-sm text-purple-400 animate-pulse">
+        <p className="text-sm text-orange-400 animate-pulse">
           Download in corso (~26 MB)... può richiedere 20–30 secondi
         </p>
       )}

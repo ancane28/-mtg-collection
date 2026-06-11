@@ -7,6 +7,7 @@ export interface ScryfallCard {
   name: string
   set: string
   set_name: string
+  collector_number?: string
   nonfoil: boolean
   foil: boolean
   printed_name?: string
@@ -125,6 +126,37 @@ export async function fetchCardsByNames(names: string[]): Promise<{
   }
 
   return { found: allFound, notFound: allNotFound }
+}
+
+/** Fetch batch di stampe specifiche tramite set+collector_number (o set+nome) */
+export async function fetchCardPrintingsByIdentifier(
+  identifiers: Array<{ name?: string; setCode: string; collectorNumber?: string }>
+): Promise<ScryfallCard[]> {
+  if (identifiers.length === 0) return []
+  const allFound: ScryfallCard[] = []
+  for (let i = 0; i < identifiers.length; i += 75) {
+    const batch = identifiers.slice(i, i + 75)
+    try {
+      const res = await fetch(`${SCRYFALL_BASE}/cards/collection`, {
+        method: 'POST',
+        headers: { ...SCRYFALL_HEADERS, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifiers: batch.map((id) =>
+            id.collectorNumber
+              ? { set: id.setCode.toLowerCase(), collector_number: id.collectorNumber }
+              : { name: id.name, set: id.setCode.toLowerCase() }
+          ),
+        }),
+        cache: 'no-store',
+      })
+      if (res.ok) {
+        const data = await res.json()
+        allFound.push(...(data.data ?? []))
+      }
+    } catch { /* ignore */ }
+    if (i + 75 < identifiers.length) await new Promise((r) => setTimeout(r, 100))
+  }
+  return allFound
 }
 
 /** Recupera tutte le stampe disponibili di una carta (per nome esatto) */

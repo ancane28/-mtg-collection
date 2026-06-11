@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { fetchCardByName, scryfallToDbInsert, fetchCardsByNames } from '@/lib/scryfall/api'
+import { fetchCardByName, scryfallToDbInsert, fetchCardsByNames, fetchCardPrintingsByIdentifier, getCardImageUrl } from '@/lib/scryfall/api'
 import { parseDecklist } from '@/lib/utils'
 import { revalidatePath } from 'next/cache'
 
@@ -123,15 +123,22 @@ export async function importCollection(text: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
 
-  const lines = parseDecklist(text)
-  if (lines.length === 0) return { error: 'Nessuna carta trovata nel testo' }
+  const rawLines = parseDecklist(text)
+  if (rawLines.length === 0) return { error: 'Nessuna carta trovata nel testo' }
 
-  // Deduplica nomi
-  const qtyByName = new Map<string, number>()
-  for (const { qty, name } of lines) {
-    qtyByName.set(name, (qtyByName.get(name) ?? 0) + qty)
+  // Raggruppa per (nome + setCode + collectorNumber) per preservare stampe distinte
+  const entriesByKey = new Map<string, { name: string; qty: number; setCode?: string; collectorNumber?: string }>()
+  for (const line of rawLines) {
+    const key = `${line.name.toLowerCase()}|${line.setCode ?? ''}|${line.collectorNumber ?? ''}`
+    const existing = entriesByKey.get(key)
+    if (existing) {
+      existing.qty += line.qty
+    } else {
+      entriesByKey.set(key, { name: line.name, qty: line.qty, setCode: line.setCode, collectorNumber: line.collectorNumber })
+    }
   }
-  const uniqueNames = [...qtyByName.keys()]
+  const entries = [...entriesByKey.values()]
+  const uniqueNames = [...new Set(entries.map((e) => e.name))]
 
   // 1. Batch lookup nel DB locale
   type CardRow = { id: string; oracle_id: string; name_en: string }
@@ -164,38 +171,86 @@ export async function importCollection(text: string) {
     }
   }
 
-  // 3. Leggi le collection_items esistenti per le carte trovate
+  // 3. Fetch stampe specifiche per le righe con setCode
+  type PrintingData = { scryfall_print_id: string; set_code: string; set_name: string; print_image_url: string }
+  const printingBySetNum = new Map<string, PrintingData>()
+  const printingBySetName = new Map<string, PrintingData>()
+
+  const withSet = entries.filter((e) => e.setCode)
+  if (withSet.length > 0) {
+    const fetched = await fetchCardPrintingsByIdentifier(
+      withSet.map((e) => ({ name: e.name, setCode: e.setCode!, collectorNumber: e.collectorNumber }))
+    )
+    for (const card of fetched) {
+      const p: PrintingData = {
+        scryfall_print_id: card.id,
+        set_code: card.set.toUpperCase(),
+        set_name: card.set_name,
+        print_image_url: getCardImageUrl(card),
+      }
+      if (card.collector_number) {
+        printingBySetNum.set(`${card.set.toUpperCase()}|${card.collector_number}`, p)
+      }
+      printingBySetName.set(`${card.set.toUpperCase()}|${card.name.toLowerCase()}`, p)
+    }
+  }
+
+  // 4. Leggi le collection_items esistenti per le carte trovate
   const cardIds = uniqueNames
     .map((n) => cardsByName.get(n.toLowerCase())?.id)
     .filter(Boolean) as string[]
 
   const { data: existingItems } = await db
     .from('collection_items')
-    .select('id, card_id, quantity_owned')
+    .select('id, card_id, quantity_owned, scryfall_print_id, is_foil')
     .in('card_id', cardIds) as {
-      data: Array<{ id: string; card_id: string; quantity_owned: number }> | null
+      data: Array<{ id: string; card_id: string; quantity_owned: number; scryfall_print_id: string | null; is_foil: boolean }> | null
     }
 
-  const existingByCardId = new Map(
-    (existingItems ?? []).map((i) => [i.card_id, i])
-  )
+  const existingByKey = new Map<string, { id: string; quantity_owned: number }>()
+  for (const item of existingItems ?? []) {
+    const k = `${item.card_id}|${item.scryfall_print_id ?? ''}|${item.is_foil}`
+    existingByKey.set(k, { id: item.id, quantity_owned: item.quantity_owned })
+  }
 
-  // 4. Upsert collection_items (incrementa le esistenti, inserisce le nuove)
+  // 5. Upsert collection_items
   let imported = 0
-  for (const [name, qty] of qtyByName) {
-    const card = cardsByName.get(name.toLowerCase())
+  for (const entry of entries) {
+    const card = cardsByName.get(entry.name.toLowerCase())
     if (!card) continue
 
-    const existing = existingByCardId.get(card.id)
+    // Trova la stampa specifica (prima per set+numero, poi per set+nome)
+    let printing: PrintingData | undefined
+    if (entry.setCode) {
+      if (entry.collectorNumber) {
+        printing = printingBySetNum.get(`${entry.setCode.toUpperCase()}|${entry.collectorNumber}`)
+      }
+      if (!printing) {
+        printing = printingBySetName.get(`${entry.setCode.toUpperCase()}|${entry.name.toLowerCase()}`)
+      }
+    }
+
+    const existKey = `${card.id}|${printing?.scryfall_print_id ?? ''}|false`
+    const existing = existingByKey.get(existKey)
+
     if (existing) {
       await db
         .from('collection_items')
-        .update({ quantity_owned: existing.quantity_owned + qty })
+        .update({ quantity_owned: existing.quantity_owned + entry.qty })
         .eq('id', existing.id)
     } else {
-      await db
-        .from('collection_items')
-        .insert({ card_id: card.id, quantity_owned: qty })
+      const insertData: Record<string, unknown> = {
+        card_id: card.id,
+        quantity_owned: entry.qty,
+        is_foil: false,
+      }
+      if (printing) {
+        insertData.scryfall_print_id = printing.scryfall_print_id
+        insertData.set_code = printing.set_code
+        insertData.set_name = printing.set_name
+        insertData.print_image_url = printing.print_image_url
+      }
+      await db.from('collection_items').insert(insertData)
     }
     imported++
   }

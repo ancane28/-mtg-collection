@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import React, { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { AddCardModal } from './AddCardModal'
@@ -70,6 +71,7 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
 ]
 
 export function CollectionClient({ items, usagesByCardId, error }: CollectionClientProps) {
+  const router = useRouter()
   const [modalOpen, setModalOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [editing, setEditing] = useState<EditingRow | null>(null)
@@ -151,6 +153,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
     const res = await refreshCollectionPrices()
     setRefreshResult(`${res.updated} prezzi aggiornati`)
     setRefreshing(false)
+    router.refresh()
   }
 
   return (

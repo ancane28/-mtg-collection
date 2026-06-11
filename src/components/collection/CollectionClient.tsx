@@ -433,6 +433,8 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                 const hasUsages = usages.length > 0
                 const hasMultiplePrintings = group.printings.length > 1
                 const isExpandable = hasUsages || hasMultiplePrintings
+                const singlePrinting = !hasMultiplePrintings ? group.printings[0] : null
+                const isSingleEditing = singlePrinting ? editing?.id === singlePrinting.id : false
 
                 return (
                   <React.Fragment key={group.oracle_id}>
@@ -463,8 +465,18 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                       <td className="px-4 py-2 text-center text-gray-300 text-xs">
                         {group.price_eur != null ? `€${group.price_eur.toFixed(2)}` : '—'}
                       </td>
-                      <td className="px-4 py-2 text-center">
-                        <span className="text-white font-medium">{group.total_owned}</span>
+                      <td className="px-4 py-2 text-center" onClick={e => e.stopPropagation()}>
+                        {singlePrinting && isSingleEditing ? (
+                          <input
+                            type="number" min={0} max={99}
+                            value={editing!.qty}
+                            onChange={e => setEditing({ id: singlePrinting.id, qty: parseInt(e.target.value) || 0 })}
+                            className="w-16 bg-gray-800 border border-purple-500 rounded px-2 py-0.5 text-white text-sm text-center focus:outline-none"
+                            autoFocus
+                          />
+                        ) : (
+                          <span className="text-white font-medium">{group.total_owned}</span>
+                        )}
                         {hasMultiplePrintings && (
                           <span className="ml-1 text-xs text-gray-500">({group.printings.length} ed.)</span>
                         )}
@@ -479,7 +491,21 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                           {group.qty_available > 0 ? '+' : ''}{group.qty_available}
                         </Badge>
                       </td>
-                      <td></td>
+                      <td className="px-4 py-2 w-24" onClick={e => e.stopPropagation()}>
+                        {singlePrinting && (
+                          isSingleEditing ? (
+                            <div className="flex gap-1 justify-center">
+                              <Button size="sm" variant="primary" loading={saving} onClick={handleSaveQty}>✓</Button>
+                              <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>✕</Button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-1 justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                              <Button size="sm" variant="ghost" onClick={() => setEditing({ id: singlePrinting.id, qty: singlePrinting.quantity_owned })}>Mod</Button>
+                              <Button size="sm" variant="danger" onClick={() => handleDelete(singlePrinting.id)}>✕</Button>
+                            </div>
+                          )
+                        )}
+                      </td>
                     </tr>
 
                     {/* Riga espansa: stampe individuali + deck usages */}

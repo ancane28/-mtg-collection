@@ -11,7 +11,12 @@ export async function login(formData: FormData) {
     password: formData.get('password') as string,
   })
 
-  if (error) return { error: error.message }
+  if (error) {
+    if (error.message === 'Email not confirmed') {
+      return { error: 'Devi confermare la tua email prima di accedere. Controlla la casella di posta.' }
+    }
+    return { error: error.message }
+  }
 
   redirect('/dashboard')
 }

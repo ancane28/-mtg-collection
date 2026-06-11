@@ -52,7 +52,8 @@ export default function SignupPage() {
             <div>
               <h2 className="text-white font-semibold mb-1">Account creato!</h2>
               <p className="text-gray-400 text-sm">
-                Controlla la tua email per confermare l&apos;account, poi accedi.
+                Abbiamo inviato un link di conferma alla tua email.
+                <strong className="text-gray-200"> Devi cliccare il link</strong> prima di poter accedere.
               </p>
             </div>
             <Link

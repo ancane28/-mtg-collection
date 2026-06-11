@@ -36,15 +36,22 @@ CREATE INDEX IF NOT EXISTS idx_cards_name_en   ON cards(LOWER(name_en));
 -- Copie fisiche possedute dall'utente
 -- ============================================================
 CREATE TABLE IF NOT EXISTS collection_items (
-  id             UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
-  card_id        UUID        NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
-  quantity_owned INTEGER     NOT NULL DEFAULT 0 CHECK (quantity_owned >= 0),
-  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id                UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  card_id           UUID        NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+  quantity_owned    INTEGER     NOT NULL DEFAULT 0 CHECK (quantity_owned >= 0),
+  -- Stampa specifica (opzionale — NULL = stampa non specificata)
+  scryfall_print_id TEXT,
+  set_code          TEXT,
+  set_name          TEXT,
+  is_foil           BOOLEAN     NOT NULL DEFAULT false,
+  print_image_url   TEXT,
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Un solo record per carta nella collezione
-CREATE UNIQUE INDEX IF NOT EXISTS idx_collection_items_card_id ON collection_items(card_id);
+-- Più stampe dello stesso oracle sono consentite; unicità per stampa specifica
+CREATE UNIQUE INDEX IF NOT EXISTS idx_collection_items_print
+  ON collection_items(card_id, COALESCE(scryfall_print_id, ''), is_foil);
 
 -- ============================================================
 -- TABELLA: decks
@@ -100,9 +107,13 @@ SELECT
   c.type_line,
   c.colors,
   c.rarity,
-  c.image_url,
+  COALESCE(ci.print_image_url, c.image_url) AS image_url,
   c.price_eur,
   ci.quantity_owned,
+  ci.scryfall_print_id,
+  ci.set_code,
+  ci.set_name,
+  ci.is_foil,
   COALESCE(
     SUM(dc.quantity) FILTER (WHERE dc.usage_type = 'real'),
     0
@@ -124,7 +135,9 @@ GROUP BY
   c.oracle_id, c.name_en, c.name_it,
   c.mana_cost, c.cmc, c.type_line,
   c.colors, c.rarity, c.image_url, c.price_eur,
-  ci.quantity_owned;
+  ci.quantity_owned,
+  ci.scryfall_print_id, ci.set_code, ci.set_name,
+  ci.is_foil, ci.print_image_url;
 
 -- ============================================================
 -- TABELLA: wishlist_items

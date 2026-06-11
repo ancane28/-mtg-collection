@@ -5,7 +5,19 @@ import { fetchCardByName, scryfallToDbInsert, fetchCardsByNames } from '@/lib/sc
 import { parseDecklist } from '@/lib/utils'
 import { revalidatePath } from 'next/cache'
 
-export async function addCardToCollection(cardName: string, qty: number) {
+interface PrintingInfo {
+  scryfall_print_id: string
+  set_code: string
+  set_name: string
+  image_url: string
+}
+
+export async function addCardToCollection(
+  cardName: string,
+  qty: number,
+  printing?: PrintingInfo,
+  isFoil = false,
+) {
   if (qty < 1) return { error: 'Quantità non valida' }
 
   const supabase = await createClient()
@@ -23,11 +35,22 @@ export async function addCardToCollection(cardName: string, qty: number) {
 
   if (cardError || !cardRow) return { error: cardError?.message ?? 'Errore salvataggio carta' }
 
-  const { data: existing } = await db
+  // Cerca riga esistente per stessa stampa + foil
+  let existingQuery = db
     .from('collection_items')
     .select('id, quantity_owned')
     .eq('card_id', cardRow.id)
-    .single() as { data: { id: string; quantity_owned: number } | null; error: unknown }
+    .eq('is_foil', isFoil)
+
+  if (printing) {
+    existingQuery = existingQuery.eq('scryfall_print_id', printing.scryfall_print_id)
+  } else {
+    existingQuery = existingQuery.is('scryfall_print_id', null)
+  }
+
+  const { data: existing } = await existingQuery.single() as {
+    data: { id: string; quantity_owned: number } | null; error: unknown
+  }
 
   if (existing) {
     const { error } = await db
@@ -36,9 +59,20 @@ export async function addCardToCollection(cardName: string, qty: number) {
       .eq('id', existing.id) as { error: { message: string } | null }
     if (error) return { error: error.message }
   } else {
+    const insertData: Record<string, unknown> = {
+      card_id: cardRow.id,
+      quantity_owned: qty,
+      is_foil: isFoil,
+    }
+    if (printing) {
+      insertData.scryfall_print_id = printing.scryfall_print_id
+      insertData.set_code = printing.set_code
+      insertData.set_name = printing.set_name
+      insertData.print_image_url = printing.image_url
+    }
     const { error } = await db
       .from('collection_items')
-      .insert({ card_id: cardRow.id, quantity_owned: qty }) as { error: { message: string } | null }
+      .insert(insertData) as { error: { message: string } | null }
     if (error) return { error: error.message }
   }
 

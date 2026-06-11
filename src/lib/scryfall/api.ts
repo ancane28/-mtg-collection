@@ -5,6 +5,10 @@ export interface ScryfallCard {
   id: string
   oracle_id: string
   name: string
+  set: string
+  set_name: string
+  nonfoil: boolean
+  foil: boolean
   printed_name?: string
   mana_cost?: string
   cmc: number
@@ -121,6 +125,19 @@ export async function fetchCardsByNames(names: string[]): Promise<{
   }
 
   return { found: allFound, notFound: allNotFound }
+}
+
+/** Recupera tutte le stampe disponibili di una carta (per nome esatto) */
+export async function fetchCardPrintings(cardName: string): Promise<ScryfallCard[]> {
+  try {
+    const url = `${SCRYFALL_BASE}/cards/search?q=!"${encodeURIComponent(cardName)}"&unique=prints&order=released`
+    const res = await fetch(url, { headers: SCRYFALL_HEADERS })
+    if (!res.ok) return []
+    const data: ScryfallSearchResult = await res.json()
+    return data.data || []
+  } catch {
+    return []
+  }
 }
 
 /** Autocomplete per nome carta */

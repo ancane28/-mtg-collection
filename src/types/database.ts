@@ -61,6 +61,11 @@ export interface Database {
           id: string
           card_id: string
           quantity_owned: number
+          scryfall_print_id: string | null
+          set_code: string | null
+          set_name: string | null
+          is_foil: boolean
+          print_image_url: string | null
           created_at: string
           updated_at: string
         }
@@ -68,6 +73,11 @@ export interface Database {
           id?: string
           card_id: string
           quantity_owned?: number
+          scryfall_print_id?: string | null
+          set_code?: string | null
+          set_name?: string | null
+          is_foil?: boolean
+          print_image_url?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -75,6 +85,11 @@ export interface Database {
           id?: string
           card_id?: string
           quantity_owned?: number
+          scryfall_print_id?: string | null
+          set_code?: string | null
+          set_name?: string | null
+          is_foil?: boolean
+          print_image_url?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -177,6 +192,10 @@ export interface Database {
           image_url: string | null
           price_eur: number | null
           quantity_owned: number
+          scryfall_print_id: string | null
+          set_code: string | null
+          set_name: string | null
+          is_foil: boolean
           qty_used: number
           qty_available: number
         }

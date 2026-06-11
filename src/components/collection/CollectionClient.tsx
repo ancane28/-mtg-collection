@@ -105,21 +105,20 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
         (i.name_it ?? '').toLowerCase().includes(q)
       )
     }
+    if (activeColors.size > 0) result = result.filter((i) => activeColors.has(getColorKey(i.colors)))
+    if (activeRarities.size > 0) result = result.filter((i) => i.rarity && activeRarities.has(i.rarity))
+    if (activeTypes.size > 0) result = result.filter((i) => activeTypes.has(getTypeGroup(i.type_line)))
 
-    if (activeColors.size > 0) {
-      result = result.filter((i) => activeColors.has(getColorKey(i.colors)))
-    }
-    if (activeRarities.size > 0) {
-      result = result.filter((i) => i.rarity && activeRarities.has(i.rarity))
-    }
-    if (activeTypes.size > 0) {
-      result = result.filter((i) => activeTypes.has(getTypeGroup(i.type_line)))
-    }
+    return result
+  }, [items, search, activeColors, activeRarities, activeTypes])
 
+  // Per la GRIGLIA: ordina i singoli item
+  const filteredSorted = useMemo(() => {
+    const result = [...filtered]
     result.sort((a, b) => {
       switch (sort) {
-        case 'name_asc':   return (a.name_en).localeCompare(b.name_en)
-        case 'name_desc':  return (b.name_en).localeCompare(a.name_en)
+        case 'name_asc':   return a.name_en.localeCompare(b.name_en)
+        case 'name_desc':  return b.name_en.localeCompare(a.name_en)
         case 'cmc_asc':    return (a.cmc ?? 0) - (b.cmc ?? 0)
         case 'cmc_desc':   return (b.cmc ?? 0) - (a.cmc ?? 0)
         case 'price_asc':  return (a.price_eur ?? -1) - (b.price_eur ?? -1)
@@ -128,9 +127,75 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
         case 'qty_desc':   return b.quantity_owned - a.quantity_owned
       }
     })
-
     return result
-  }, [items, search, activeColors, activeRarities, activeTypes, sort])
+  }, [filtered, sort])
+
+  // Per la LISTA: raggruppa per oracle_id, somma le quantità
+  const groupedList = useMemo(() => {
+    const map = new Map<string, {
+      oracle_id: string
+      card_id: string
+      name_en: string
+      name_it: string | null
+      mana_cost: string | null
+      cmc: number | null
+      type_line: string | null
+      colors: string[]
+      rarity: string | null
+      image_url: string | null
+      price_eur: number | null
+      total_owned: number
+      qty_used: number
+      qty_available: number
+      printings: CollectionAvailability[]
+    }>()
+
+    for (const item of filtered) {
+      const existing = map.get(item.oracle_id)
+      if (existing) {
+        existing.total_owned += item.quantity_owned
+        existing.printings.push(item)
+        // qty_used è lo stesso per tutti gli item dello stesso oracle
+      } else {
+        map.set(item.oracle_id, {
+          oracle_id: item.oracle_id,
+          card_id: item.card_id,
+          name_en: item.name_en,
+          name_it: item.name_it,
+          mana_cost: item.mana_cost,
+          cmc: item.cmc,
+          type_line: item.type_line,
+          colors: item.colors,
+          rarity: item.rarity,
+          image_url: item.image_url,
+          price_eur: item.price_eur,
+          total_owned: item.quantity_owned,
+          qty_used: item.qty_used,
+          qty_available: 0,
+          printings: [item],
+        })
+      }
+    }
+
+    for (const g of map.values()) {
+      g.qty_available = g.total_owned - g.qty_used
+    }
+
+    const groups = [...map.values()]
+    groups.sort((a, b) => {
+      switch (sort) {
+        case 'name_asc':   return a.name_en.localeCompare(b.name_en)
+        case 'name_desc':  return b.name_en.localeCompare(a.name_en)
+        case 'cmc_asc':    return (a.cmc ?? 0) - (b.cmc ?? 0)
+        case 'cmc_desc':   return (b.cmc ?? 0) - (a.cmc ?? 0)
+        case 'price_asc':  return (a.price_eur ?? -1) - (b.price_eur ?? -1)
+        case 'price_desc': return (b.price_eur ?? -1) - (a.price_eur ?? -1)
+        case 'qty_asc':    return a.total_owned - b.total_owned
+        case 'qty_desc':   return b.total_owned - a.total_owned
+      }
+    })
+    return groups
+  }, [filtered, sort])
 
   const hasFilters = search !== '' || activeColors.size > 0 || activeRarities.size > 0 || activeTypes.size > 0
 
@@ -163,9 +228,13 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
         <div>
           <h1 className="text-2xl font-bold text-white">Collezione</h1>
           <p className="text-sm text-gray-400 mt-1">
-            {filtered.length !== items.length
-              ? `${filtered.length} / ${items.length} carte`
-              : `${items.length} carte`}
+            {view === 'list'
+              ? (groupedList.length !== items.length
+                  ? `${groupedList.length} / ${[...new Map(items.map(i => [i.oracle_id, i])).keys()].length} carte`
+                  : `${groupedList.length} carte`)
+              : (filtered.length !== items.length
+                  ? `${filtered.length} / ${items.length} copie`
+                  : `${items.length} copie`)}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -328,7 +397,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
           <p className="text-gray-500 text-sm mb-6 max-w-sm">Aggiungi le tue prime carte cercandole per nome</p>
           <Button variant="primary" onClick={() => setModalOpen(true)}>+ Aggiungi carte</Button>
         </div>
-      ) : filtered.length === 0 ? (
+      ) : groupedList.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
           <p>Nessuna carta corrisponde ai filtri selezionati.</p>
           <button
@@ -339,6 +408,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
           </button>
         </div>
       ) : view === 'list' ? (
+        /* ── VISTA LISTA: raggruppata per oracle, espandibile per stampe ── */
         <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[700px]">
@@ -352,106 +422,167 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                 <th className="px-4 py-3 text-center">Possedute</th>
                 <th className="px-4 py-3 text-center">Usate</th>
                 <th className="px-4 py-3 text-center">Disponibili</th>
-                <th className="px-4 py-3 w-24"></th>
+                <th className="px-4 py-3 w-8"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800/50">
-              {filtered.map(item => {
-                const variant = availabilityVariant(item.qty_available)
-                const isEditing = editing?.id === item.id
-                const isExpanded = expandedId === item.id
-                const usages = usagesByCardId[item.card_id] ?? []
+              {groupedList.map(group => {
+                const variant = availabilityVariant(group.qty_available)
+                const isExpanded = expandedId === group.oracle_id
+                const usages = usagesByCardId[group.card_id] ?? []
                 const hasUsages = usages.length > 0
+                const hasMultiplePrintings = group.printings.length > 1
+                const isExpandable = hasUsages || hasMultiplePrintings
 
                 return (
-                  <React.Fragment key={item.id}>
+                  <React.Fragment key={group.oracle_id}>
+                    {/* Riga gruppo oracle */}
                     <tr
-                      className={`group hover:bg-gray-800/40 transition-colors ${hasUsages ? 'cursor-pointer' : ''} ${isExpanded ? 'bg-gray-800/30' : ''}`}
-                      onClick={() => hasUsages && setExpandedId(isExpanded ? null : item.id)}
+                      className={`group hover:bg-gray-800/40 transition-colors ${isExpandable ? 'cursor-pointer' : ''} ${isExpanded ? 'bg-gray-800/30' : ''}`}
+                      onClick={() => isExpandable && setExpandedId(isExpanded ? null : group.oracle_id)}
                     >
                       <td className="px-4 py-2">
                         <div className="flex items-center gap-1.5">
-                          {hasUsages && (
-                            <svg
-                              className={`w-3 h-3 text-gray-500 shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                              fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            >
+                          {isExpandable && (
+                            <svg className={`w-3 h-3 text-gray-500 shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                           )}
                           <div>
-                            <div className="font-medium text-white">{item.name_en}</div>
-                            {item.name_it && <div className="text-xs text-gray-500">{item.name_it}</div>}
+                            <div className="font-medium text-white">{group.name_en}</div>
+                            {group.name_it && <div className="text-xs text-gray-500">{group.name_it}</div>}
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-2 text-gray-400 max-w-40 truncate">{item.type_line}</td>
-                      <td className="px-4 py-2 text-center font-mono text-gray-300">
-                        {formatManaCost(item.mana_cost)}
-                      </td>
+                      <td className="px-4 py-2 text-gray-400 max-w-40 truncate">{group.type_line}</td>
+                      <td className="px-4 py-2 text-center font-mono text-gray-300">{formatManaCost(group.mana_cost)}</td>
                       <td className="px-4 py-2 text-center">
-                        <span className={`text-xs capitalize ${rarityColor(item.rarity)}`}>
-                          {item.rarity}
-                        </span>
+                        <span className={`text-xs capitalize ${rarityColor(group.rarity)}`}>{group.rarity}</span>
                       </td>
                       <td className="px-4 py-2 text-center text-gray-300 text-xs">
-                        {item.price_eur != null ? `€${item.price_eur.toFixed(2)}` : '—'}
+                        {group.price_eur != null ? `€${group.price_eur.toFixed(2)}` : '—'}
                       </td>
-                      <td className="px-4 py-2 text-center" onClick={e => e.stopPropagation()}>
-                        {isEditing ? (
-                          <input
-                            type="number" min={0} max={99}
-                            value={editing.qty}
-                            onChange={e => setEditing({ id: item.id, qty: parseInt(e.target.value) || 0 })}
-                            className="w-16 bg-gray-800 border border-purple-500 rounded px-2 py-0.5 text-white text-sm text-center focus:outline-none"
-                            autoFocus
-                          />
-                        ) : (
-                          <span className="text-white font-medium">{item.quantity_owned}</span>
+                      <td className="px-4 py-2 text-center">
+                        <span className="text-white font-medium">{group.total_owned}</span>
+                        {hasMultiplePrintings && (
+                          <span className="ml-1 text-xs text-gray-500">({group.printings.length} ed.)</span>
                         )}
                       </td>
                       <td className="px-4 py-2 text-center">
                         <span className={`text-sm ${hasUsages ? 'text-blue-400 font-medium' : 'text-gray-400'}`}>
-                          {item.qty_used}
+                          {group.qty_used}
                         </span>
                       </td>
                       <td className="px-4 py-2 text-center">
                         <Badge variant={variant}>
-                          {item.qty_available > 0 ? '+' : ''}{item.qty_available}
+                          {group.qty_available > 0 ? '+' : ''}{group.qty_available}
                         </Badge>
                       </td>
-                      <td className="px-4 py-2" onClick={e => e.stopPropagation()}>
-                        {isEditing ? (
-                          <div className="flex gap-1 justify-center">
-                            <Button size="sm" variant="primary" loading={saving} onClick={handleSaveQty}>✓</Button>
-                            <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>✕</Button>
-                          </div>
-                        ) : (
-                          <div className="flex gap-1 justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                            <Button size="sm" variant="ghost" onClick={() => setEditing({ id: item.id, qty: item.quantity_owned })}>Mod</Button>
-                            <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)}>✕</Button>
-                          </div>
-                        )}
-                      </td>
+                      <td></td>
                     </tr>
+
+                    {/* Riga espansa: stampe individuali + deck usages */}
                     {isExpanded && (
-                      <tr key={`${item.id}-decks`} className="bg-gray-800/20">
-                        <td colSpan={9} className="px-8 py-2">
-                          <div className="flex flex-wrap gap-2">
-                            {usages.map((u, i) => (
-                              <div key={i} className="flex items-center gap-1.5 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5">
-                                <span className="text-sm text-white">{u.deck_name}</span>
-                                <span className="text-xs text-gray-500">{u.quantity}x</span>
-                                <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-                                  u.usage_type === 'real'
-                                    ? 'bg-green-900/40 text-green-400'
-                                    : 'bg-yellow-900/30 text-yellow-500'
-                                }`}>
-                                  {u.usage_type.toUpperCase()}
+                      <tr key={`${group.oracle_id}-expanded`} className="bg-gray-800/20">
+                        <td colSpan={9} className="px-6 py-3">
+                          {/* Stampe individuali */}
+                          {hasMultiplePrintings && (
+                            <div className="mb-3 space-y-1">
+                              <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Edizioni in collezione</p>
+                              {group.printings.map(printing => {
+                                const isEditing = editing?.id === printing.id
+                                return (
+                                  <div key={printing.id} className="flex items-center gap-3 py-1 group/row">
+                                    <div className="flex-1 flex items-center gap-2">
+                                      <span className="text-sm text-gray-300">
+                                        {printing.set_name ?? 'Edizione sconosciuta'}
+                                        {printing.set_code && (
+                                          <span className="ml-1.5 text-xs text-gray-600 uppercase">[{printing.set_code}]</span>
+                                        )}
+                                      </span>
+                                      {printing.is_foil && (
+                                        <span className="text-xs px-1.5 py-0.5 rounded bg-purple-900/40 text-purple-400 border border-purple-800/40">✨ Foil</span>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
+                                      {isEditing ? (
+                                        <>
+                                          <input
+                                            type="number" min={0} max={99}
+                                            value={editing.qty}
+                                            onChange={e => setEditing({ id: printing.id, qty: parseInt(e.target.value) || 0 })}
+                                            className="w-14 bg-gray-800 border border-purple-500 rounded px-2 py-0.5 text-white text-sm text-center focus:outline-none"
+                                            autoFocus
+                                          />
+                                          <Button size="sm" variant="primary" loading={saving} onClick={handleSaveQty}>✓</Button>
+                                          <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>✕</Button>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <span className="text-white text-sm font-medium">{printing.quantity_owned}×</span>
+                                          <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover/row:opacity-100 transition-opacity">
+                                            <Button size="sm" variant="ghost" onClick={() => setEditing({ id: printing.id, qty: printing.quantity_owned })}>Mod</Button>
+                                            <Button size="sm" variant="danger" onClick={() => handleDelete(printing.id)}>✕</Button>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+
+                          {/* Se c'è solo una stampa mostra edit inline */}
+                          {!hasMultiplePrintings && group.printings[0] && (() => {
+                            const printing = group.printings[0]
+                            const isEditing = editing?.id === printing.id
+                            return (
+                              <div className="mb-3 flex items-center gap-3" onClick={e => e.stopPropagation()}>
+                                <span className="text-xs text-gray-500">
+                                  {printing.set_name
+                                    ? `${printing.set_name}${printing.is_foil ? ' · Foil' : ''}`
+                                    : 'Edizione non specificata'}
                                 </span>
+                                {isEditing ? (
+                                  <div className="flex gap-1 ml-auto">
+                                    <input
+                                      type="number" min={0} max={99}
+                                      value={editing.qty}
+                                      onChange={e => setEditing({ id: printing.id, qty: parseInt(e.target.value) || 0 })}
+                                      className="w-14 bg-gray-800 border border-purple-500 rounded px-2 py-0.5 text-white text-sm text-center focus:outline-none"
+                                      autoFocus
+                                    />
+                                    <Button size="sm" variant="primary" loading={saving} onClick={handleSaveQty}>✓</Button>
+                                    <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>✕</Button>
+                                  </div>
+                                ) : (
+                                  <div className="ml-auto flex gap-1">
+                                    <Button size="sm" variant="ghost" onClick={() => setEditing({ id: printing.id, qty: printing.quantity_owned })}>Mod</Button>
+                                    <Button size="sm" variant="danger" onClick={() => handleDelete(printing.id)}>✕</Button>
+                                  </div>
+                                )}
                               </div>
-                            ))}
-                          </div>
+                            )
+                          })()}
+
+                          {/* Deck usages */}
+                          {hasUsages && (
+                            <div className="flex flex-wrap gap-2">
+                              {usages.map((u, i) => (
+                                <div key={i} className="flex items-center gap-1.5 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5">
+                                  <span className="text-sm text-white">{u.deck_name}</span>
+                                  <span className="text-xs text-gray-500">{u.quantity}x</span>
+                                  <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                                    u.usage_type === 'real' ? 'bg-green-900/40 text-green-400' : 'bg-yellow-900/30 text-yellow-500'
+                                  }`}>
+                                    {u.usage_type.toUpperCase()}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </td>
                       </tr>
                     )}
@@ -463,9 +594,10 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
           </div>
         </div>
       ) : (
+        /* ── VISTA GRIGLIA: ogni stampa individualmente ── */
         <div className="space-y-8">
-          {TYPE_GROUPS.filter((type) => filtered.some((i) => getTypeGroup(i.type_line) === type)).map((type) => {
-            const group = filtered.filter((i) => getTypeGroup(i.type_line) === type)
+          {TYPE_GROUPS.filter((type) => filteredSorted.some((i) => getTypeGroup(i.type_line) === type)).map((type) => {
+            const group = filteredSorted.filter((i) => getTypeGroup(i.type_line) === type)
             return (
               <div key={type}>
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
@@ -474,18 +606,29 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                   {group.map(item => (
                     <div key={item.id} className="flex flex-col rounded-xl overflow-hidden bg-gray-900 border border-gray-800 hover:border-gray-600 transition-colors">
-                      {item.image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={item.image_url} alt={item.name_en} className="w-full h-auto" />
-                      ) : (
-                        <div className="w-full aspect-[5/7] bg-gray-800 flex items-center justify-center text-gray-600 text-xs text-center px-2">
-                          {item.name_en}
-                        </div>
-                      )}
+                      <div className="relative">
+                        {item.image_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={item.image_url} alt={item.name_en} className="w-full h-auto" />
+                        ) : (
+                          <div className="w-full aspect-[5/7] bg-gray-800 flex items-center justify-center text-gray-600 text-xs text-center px-2">
+                            {item.name_en}
+                          </div>
+                        )}
+                        {item.is_foil && (
+                          <span className="absolute top-1 right-1 text-[10px] px-1 py-0.5 rounded bg-purple-900/80 text-purple-300 border border-purple-700/50">✨</span>
+                        )}
+                        {item.quantity_owned > 1 && (
+                          <span className="absolute bottom-1 right-1 text-[10px] px-1.5 py-0.5 rounded-full bg-black/70 text-white font-bold">×{item.quantity_owned}</span>
+                        )}
+                      </div>
                       <div className="p-2 flex flex-col gap-0.5">
                         <span className={`text-xs font-medium truncate ${rarityColor(item.rarity)}`}>
                           {item.name_en}
                         </span>
+                        {item.set_name && (
+                          <span className="text-[10px] text-gray-500 truncate">{item.set_name}</span>
+                        )}
                         <span className="text-xs text-gray-400">
                           {item.price_eur != null ? `€${item.price_eur.toFixed(2)}` : '—'}
                         </span>

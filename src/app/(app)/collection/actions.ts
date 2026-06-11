@@ -109,6 +109,15 @@ export async function removeFromCollection(itemId: string) {
   return { success: true }
 }
 
+export async function removeManyFromCollection(itemIds: string[]) {
+  if (itemIds.length === 0) return { success: true }
+  const supabase = await createClient()
+  const { error } = await supabase.from('collection_items').delete().in('id', itemIds)
+  if (error) return { error: error.message }
+  revalidatePath('/collection')
+  return { success: true }
+}
+
 export async function importCollection(text: string) {
   const supabase = await createClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

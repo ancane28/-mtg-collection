@@ -8,7 +8,7 @@ import { AddCardModal } from './AddCardModal'
 import { ImportCollectionModal } from './ImportCollectionModal'
 import { CollectionAvailability } from '@/types/database'
 import { availabilityVariant, formatManaCost, rarityColor } from '@/lib/utils'
-import { updateCollectionQty, removeFromCollection, refreshCollectionPrices } from '@/app/(app)/collection/actions'
+import { updateCollectionQty, removeFromCollection, refreshCollectionPrices, removeManyFromCollection } from '@/app/(app)/collection/actions'
 import { DeckUsage } from '@/app/(app)/collection/page'
 
 interface CollectionClientProps {
@@ -81,6 +81,8 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
   const [refreshResult, setRefreshResult] = useState<string | null>(null)
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkDeleting, setBulkDeleting] = useState(false)
 
   // Filtri
   const [search, setSearch]                 = useState('')
@@ -210,6 +212,34 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
   async function handleDelete(id: string) {
     if (!confirm('Rimuovere questa carta dalla collezione?')) return
     await removeFromCollection(id)
+  }
+
+  function toggleSelect(oracleId: string) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      next.has(oracleId) ? next.delete(oracleId) : next.add(oracleId)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    if (selected.size === groupedList.length) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(groupedList.map(g => g.oracle_id)))
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (!confirm(`Rimuovere ${selected.size} carte dalla collezione?`)) return
+    setBulkDeleting(true)
+    const ids = groupedList
+      .filter(g => selected.has(g.oracle_id))
+      .flatMap(g => g.printings.map(p => p.id))
+    await removeManyFromCollection(ids)
+    setSelected(new Set())
+    setBulkDeleting(false)
+    router.refresh()
   }
 
   async function handleRefreshPrices() {
@@ -385,6 +415,20 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
         </div>
       )}
 
+      {selected.size > 0 && (
+        <div className="mb-4 flex items-center justify-between gap-3 px-4 py-3 bg-purple-900/20 border border-purple-800/40 rounded-xl">
+          <span className="text-sm text-purple-300 font-medium">
+            {selected.size} {selected.size === 1 ? 'carta selezionata' : 'carte selezionate'}
+          </span>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => setSelected(new Set())}>Deseleziona tutto</Button>
+            <Button variant="danger" loading={bulkDeleting} onClick={handleBulkDelete}>
+              Elimina selezionate
+            </Button>
+          </div>
+        </div>
+      )}
+
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mb-4">
@@ -414,6 +458,14 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
           <table className="w-full text-sm min-w-[700px]">
             <thead>
               <tr className="border-b border-gray-800 text-gray-400 text-xs uppercase tracking-wider">
+                <th className="px-3 py-3 w-8">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-600 bg-gray-800 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900"
+                    checked={groupedList.length > 0 && selected.size === groupedList.length}
+                    onChange={toggleSelectAll}
+                  />
+                </th>
                 <th className="px-4 py-3 text-left">Carta</th>
                 <th className="px-4 py-3 text-left">Tipo</th>
                 <th className="px-4 py-3 text-center">Mana</th>
@@ -440,9 +492,17 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                   <React.Fragment key={group.oracle_id}>
                     {/* Riga gruppo oracle */}
                     <tr
-                      className={`group hover:bg-gray-800/40 transition-colors ${isExpandable ? 'cursor-pointer' : ''} ${isExpanded ? 'bg-gray-800/30' : ''}`}
+                      className={`group hover:bg-gray-800/40 transition-colors ${isExpandable ? 'cursor-pointer' : ''} ${isExpanded ? 'bg-gray-800/30' : ''} ${selected.has(group.oracle_id) ? 'bg-purple-900/10' : ''}`}
                       onClick={() => isExpandable && setExpandedId(isExpanded ? null : group.oracle_id)}
                     >
+                      <td className="px-3 py-2" onClick={e => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-600 bg-gray-800 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900"
+                          checked={selected.has(group.oracle_id)}
+                          onChange={() => toggleSelect(group.oracle_id)}
+                        />
+                      </td>
                       <td className="px-4 py-2">
                         <div className="flex items-center gap-1.5">
                           {isExpandable && (
@@ -511,7 +571,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                     {/* Riga espansa: stampe individuali + deck usages */}
                     {isExpanded && (
                       <tr key={`${group.oracle_id}-expanded`} className="bg-gray-800/20">
-                        <td colSpan={9} className="px-6 py-3">
+                        <td colSpan={10} className="px-6 py-3">
                           {/* Stampe individuali */}
                           {hasMultiplePrintings && (
                             <div className="mb-3 space-y-1">

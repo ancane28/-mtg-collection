@@ -155,7 +155,7 @@ export function DashboardClient({ stats, overcommitCards, decks }: Props) {
                 <Link
                   key={deck.id}
                   href={`/decks/${deck.id}`}
-                  className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors group"
+                  className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors group"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-100 truncate group-hover:text-white">
@@ -180,7 +180,7 @@ export function DashboardClient({ stats, overcommitCards, decks }: Props) {
                   </div>
 
                   {total > 0 && (
-                    <div className="w-20 shrink-0">
+                    <div className="w-20 shrink-0 hidden sm:block">
                       <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-red-500 rounded-full"

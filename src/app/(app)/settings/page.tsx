@@ -1,5 +1,6 @@
 import { getCardStats } from './actions'
 import { SyncButton } from '@/components/settings/SyncButton'
+import { LogoutButton } from '@/components/settings/LogoutButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,6 +40,11 @@ export default async function SettingsPage() {
           Fonte: Scryfall oracle_cards bulk data (~26 MB, ~27.000 carte univoche).
           Ripeti la sync periodicamente per aggiornare le nuove uscite.
         </p>
+      </div>
+
+      <div className="mt-6 bg-gray-900 border border-gray-800 rounded-xl p-4 md:hidden">
+        <h2 className="text-base font-semibold text-white mb-3">Account</h2>
+        <LogoutButton />
       </div>
     </div>
   )

@@ -8,7 +8,11 @@
       "PowerShell(Test-Path \"C:\\\\Program Files\\\\nodejs\\\\npm.cmd\"; Test-Path \"C:\\\\Program Files\\\\nodejs\\\\node.exe\"; $env:PATH -split ';' | Where-Object { $_ -ne '' } | Select-String \"node\")",
       "Bash(npx tsc *)",
       "Bash(npm list *)",
-      "PowerShell(Get-ChildItem -Recurse \"C:\\\\Users\\\\andre\\\\Desktop\\\\mtg-collection\\\\src\\\\app\" | Where-Object { $_.Name -eq \"page.tsx\" } | Select-Object FullName)"
+      "PowerShell(Get-ChildItem -Recurse \"C:\\\\Users\\\\andre\\\\Desktop\\\\mtg-collection\\\\src\\\\app\" | Where-Object { $_.Name -eq \"page.tsx\" } | Select-Object FullName)",
+      "Bash(npx next *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }

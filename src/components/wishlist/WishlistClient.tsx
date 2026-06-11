@@ -219,7 +219,8 @@ export function WishlistClient({ items, error }: WishlistClientProps) {
         </div>
       ) : (
         <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[700px]">
             <thead>
               <tr className="border-b border-gray-800 text-gray-400 text-xs uppercase tracking-wider">
                 <th className="px-4 py-3 text-left">Carta</th>
@@ -317,7 +318,7 @@ export function WishlistClient({ items, error }: WishlistClientProps) {
                           <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>✕</Button>
                         </div>
                       ) : (
-                        <div className="flex gap-1 justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-1 justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                           <Button
                             size="sm"
                             variant="ghost"
@@ -348,6 +349,7 @@ export function WishlistClient({ items, error }: WishlistClientProps) {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

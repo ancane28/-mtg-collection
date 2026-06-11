@@ -156,7 +156,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Collezione</h1>
           <p className="text-sm text-gray-400 mt-1">
@@ -165,7 +165,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
               : `${items.length} carte`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex rounded-lg border border-gray-700 overflow-hidden">
             <button
               onClick={() => setView('list')}
@@ -187,13 +187,15 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
             </button>
           </div>
           <Button variant="secondary" loading={refreshing} onClick={handleRefreshPrices}>
-            Aggiorna prezzi
+            <span className="hidden sm:inline">Aggiorna prezzi</span>
+            <span className="sm:hidden">Prezzi</span>
           </Button>
           <Button variant="secondary" onClick={() => setImportOpen(true)}>
-            Importa lista
+            <span className="hidden sm:inline">Importa lista</span>
+            <span className="sm:hidden">Importa</span>
           </Button>
           <Button variant="primary" onClick={() => setModalOpen(true)}>
-            + Aggiungi carta
+            + Aggiungi
           </Button>
         </div>
       </div>
@@ -223,86 +225,80 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
       </div>
 
       {/* Barra filtri + ordinamento */}
-      <div className="mb-4 p-3 bg-gray-900 border border-gray-800 rounded-xl flex flex-wrap items-center gap-3">
-        {/* Colori */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-gray-500 uppercase tracking-wider mr-1">Colore</span>
-          {COLORS.map((c) => (
-            <button
-              key={c}
-              onClick={() => setActiveColors(toggle(activeColors, c))}
-              className={`w-7 h-7 rounded-full border-2 text-xs font-bold transition-all ${COLOR_STYLE[c]} ${
-                activeColors.has(c) ? 'scale-110 ring-2 ring-white/40' : 'opacity-50 hover:opacity-80'
-              }`}
-              title={c}
-            >
-              {COLOR_LABELS[c]}
-            </button>
-          ))}
-        </div>
-
-        <div className="w-px h-6 bg-gray-700" />
-
-        {/* Rarità */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-gray-500 uppercase tracking-wider mr-1">Rarità</span>
-          {RARITIES.map((r) => (
-            <button
-              key={r}
-              onClick={() => setActiveRarities(toggle(activeRarities, r))}
-              className={`px-2 py-0.5 rounded text-xs capitalize transition-all border ${
-                activeRarities.has(r)
-                  ? `${rarityColor(r)} border-current bg-white/10`
-                  : 'text-gray-500 border-gray-700 hover:border-gray-500'
-              }`}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
-
-        <div className="w-px h-6 bg-gray-700" />
-
-        {/* Tipo */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-xs text-gray-500 uppercase tracking-wider mr-1">Tipo</span>
-          {TYPE_GROUPS.map((t) => (
-            <button
-              key={t}
-              onClick={() => setActiveTypes(toggle(activeTypes, t))}
-              className={`px-2 py-0.5 rounded text-xs transition-all border ${
-                activeTypes.has(t)
-                  ? 'text-purple-300 border-purple-500 bg-purple-900/30'
-                  : 'text-gray-500 border-gray-700 hover:border-gray-500'
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
-        <div className="w-px h-6 bg-gray-700" />
-
-        {/* Ordinamento */}
-        <div className="flex items-center gap-2 ml-auto">
-          {hasFilters && (
-            <button
-              onClick={() => { setSearch(''); setActiveColors(new Set()); setActiveRarities(new Set()); setActiveTypes(new Set()) }}
-              className="text-xs text-red-400 hover:text-red-300 transition-colors"
-            >
-              Azzera filtri
-            </button>
-          )}
-          <span className="text-xs text-gray-500 uppercase tracking-wider">Ordina</span>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as SortKey)}
-            className="bg-gray-800 border border-gray-700 rounded-lg text-sm text-white px-2 py-1 focus:outline-none focus:border-purple-500"
-          >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+      <div className="mb-4 p-3 bg-gray-900 border border-gray-800 rounded-xl space-y-2.5">
+        {/* Riga 1: Colori + Rarità */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-500 uppercase tracking-wider mr-1">Colore</span>
+            {COLORS.map((c) => (
+              <button
+                key={c}
+                onClick={() => setActiveColors(toggle(activeColors, c))}
+                className={`w-7 h-7 rounded-full border-2 text-xs font-bold transition-all ${COLOR_STYLE[c]} ${
+                  activeColors.has(c) ? 'scale-110 ring-2 ring-white/40' : 'opacity-50 hover:opacity-80'
+                }`}
+                title={c}
+              >
+                {COLOR_LABELS[c]}
+              </button>
             ))}
-          </select>
+          </div>
+          <div className="hidden sm:block w-px h-6 bg-gray-700" />
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs text-gray-500 uppercase tracking-wider mr-1">Rarità</span>
+            {RARITIES.map((r) => (
+              <button
+                key={r}
+                onClick={() => setActiveRarities(toggle(activeRarities, r))}
+                className={`px-2 py-0.5 rounded text-xs capitalize transition-all border ${
+                  activeRarities.has(r)
+                    ? `${rarityColor(r)} border-current bg-white/10`
+                    : 'text-gray-500 border-gray-700 hover:border-gray-500'
+                }`}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Riga 2: Tipo + Ordinamento */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap flex-1">
+            <span className="text-xs text-gray-500 uppercase tracking-wider mr-1">Tipo</span>
+            {TYPE_GROUPS.map((t) => (
+              <button
+                key={t}
+                onClick={() => setActiveTypes(toggle(activeTypes, t))}
+                className={`px-2 py-0.5 rounded text-xs transition-all border ${
+                  activeTypes.has(t)
+                    ? 'text-purple-300 border-purple-500 bg-purple-900/30'
+                    : 'text-gray-500 border-gray-700 hover:border-gray-500'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {hasFilters && (
+              <button
+                onClick={() => { setSearch(''); setActiveColors(new Set()); setActiveRarities(new Set()); setActiveTypes(new Set()) }}
+                className="text-xs text-red-400 hover:text-red-300 transition-colors"
+              >
+                Azzera
+              </button>
+            )}
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              className="bg-gray-800 border border-gray-700 rounded-lg text-sm text-white px-2 py-1 focus:outline-none focus:border-purple-500"
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -341,7 +337,8 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
         </div>
       ) : view === 'list' ? (
         <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[700px]">
             <thead>
               <tr className="border-b border-gray-800 text-gray-400 text-xs uppercase tracking-wider">
                 <th className="px-4 py-3 text-left">Carta</th>
@@ -427,7 +424,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
                             <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>✕</Button>
                           </div>
                         ) : (
-                          <div className="flex gap-1 justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex gap-1 justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                             <Button size="sm" variant="ghost" onClick={() => setEditing({ id: item.id, qty: item.quantity_owned })}>Mod</Button>
                             <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)}>✕</Button>
                           </div>
@@ -460,6 +457,7 @@ export function CollectionClient({ items, usagesByCardId, error }: CollectionCli
               })}
             </tbody>
           </table>
+          </div>
         </div>
       ) : (
         <div className="space-y-8">

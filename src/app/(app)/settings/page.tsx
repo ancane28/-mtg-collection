@@ -1,6 +1,7 @@
 import { getCardStats } from './actions'
 import { SyncButton } from '@/components/settings/SyncButton'
 import { LogoutButton } from '@/components/settings/LogoutButton'
+import { DeleteAccountButton } from '@/components/settings/DeleteAccountButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,6 +46,16 @@ export default async function SettingsPage() {
       <div className="mt-6 bg-gray-900/60 border border-gray-800/60 rounded-xl p-4 md:hidden">
         <h2 className="text-base font-semibold text-white mb-3">Account</h2>
         <LogoutButton />
+      </div>
+
+      <div className="mt-6 bg-gray-900/60 border border-red-900/40 rounded-xl p-6 space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-red-400 mb-1">Zona pericolosa</h2>
+          <p className="text-sm text-gray-400">
+            L&apos;eliminazione dell&apos;account rimuove permanentemente tutti i tuoi dati: collezione, mazzi e wishlist.
+          </p>
+        </div>
+        <DeleteAccountButton />
       </div>
     </div>
   )

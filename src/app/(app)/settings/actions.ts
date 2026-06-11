@@ -1,8 +1,10 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { scryfallToDbInsert, ScryfallCard, SCRYFALL_HEADERS } from '@/lib/scryfall/api'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 
 export async function getCardStats() {
   const supabase = await createClient()
@@ -11,6 +13,23 @@ export async function getCardStats() {
     .from('cards')
     .select('*', { count: 'exact', head: true }) as { count: number | null }
   return { count: count ?? 0 }
+}
+
+export async function deleteAccount() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Non autenticato' }
+
+  const adminClient = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { error } = await adminClient.auth.admin.deleteUser(user.id)
+  if (error) return { error: error.message }
+
+  await supabase.auth.signOut()
+  redirect('/login')
 }
 
 export async function syncCardsDatabase() {
